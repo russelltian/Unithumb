@@ -1,0 +1,587 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		3E62D2D34BF903DA41F27B49 /* Pods_Hackthe_sleepTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27634F6B6FC6873BD9B4A858 /* Pods_Hackthe_sleepTests.framework */; };
+		45C2B18A2132D4120091218A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C2B1892132D4120091218A /* AppDelegate.swift */; };
+		45C2B18C2132D4120091218A /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C2B18B2132D4120091218A /* ViewController.swift */; };
+		45C2B18F2132D4120091218A /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 45C2B18D2132D4120091218A /* Main.storyboard */; };
+		45C2B1912132D4140091218A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 45C2B1902132D4140091218A /* Assets.xcassets */; };
+		45C2B1942132D4140091218A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 45C2B1922132D4140091218A /* LaunchScreen.storyboard */; };
+		45C2B19F2132D4140091218A /* Hackthe_sleepTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C2B19E2132D4140091218A /* Hackthe_sleepTests.swift */; };
+		5EB561C10599CA60DBD94871 /* Pods_Hackthe_sleep.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 33AF06C68CF23B0DF59A38BF /* Pods_Hackthe_sleep.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		45C2B19B2132D4140091218A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 45C2B17E2132D4120091218A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 45C2B1852132D4120091218A;
+			remoteInfo = Hackthe_sleep;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		1F1D24920629BDDE4EC2E5D0 /* Pods-Hackthe_sleep.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Hackthe_sleep.release.xcconfig"; path = "Pods/Target Support Files/Pods-Hackthe_sleep/Pods-Hackthe_sleep.release.xcconfig"; sourceTree = "<group>"; };
+		225A55B4C4863A4CED890937 /* Pods-Hackthe_sleepTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Hackthe_sleepTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-Hackthe_sleepTests/Pods-Hackthe_sleepTests.release.xcconfig"; sourceTree = "<group>"; };
+		27634F6B6FC6873BD9B4A858 /* Pods_Hackthe_sleepTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Hackthe_sleepTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		33AF06C68CF23B0DF59A38BF /* Pods_Hackthe_sleep.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Hackthe_sleep.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		45C2B1862132D4120091218A /* Hackthe_sleep.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hackthe_sleep.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		45C2B1892132D4120091218A /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		45C2B18B2132D4120091218A /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		45C2B18E2132D4120091218A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		45C2B1902132D4140091218A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		45C2B1932132D4140091218A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		45C2B1952132D4140091218A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		45C2B19A2132D4140091218A /* Hackthe_sleepTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Hackthe_sleepTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		45C2B19E2132D4140091218A /* Hackthe_sleepTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Hackthe_sleepTests.swift; sourceTree = "<group>"; };
+		45C2B1A02132D4140091218A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A8CBC42B17A0539311D0664A /* Pods-Hackthe_sleep.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Hackthe_sleep.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Hackthe_sleep/Pods-Hackthe_sleep.debug.xcconfig"; sourceTree = "<group>"; };
+		AC3D574C9B4912BDEC7DD162 /* Pods-Hackthe_sleepTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Hackthe_sleepTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Hackthe_sleepTests/Pods-Hackthe_sleepTests.debug.xcconfig"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		45C2B1832132D4120091218A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5EB561C10599CA60DBD94871 /* Pods_Hackthe_sleep.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		45C2B1972132D4140091218A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3E62D2D34BF903DA41F27B49 /* Pods_Hackthe_sleepTests.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		271B5E0BF47439FD613E2D83 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				A8CBC42B17A0539311D0664A /* Pods-Hackthe_sleep.debug.xcconfig */,
+				1F1D24920629BDDE4EC2E5D0 /* Pods-Hackthe_sleep.release.xcconfig */,
+				AC3D574C9B4912BDEC7DD162 /* Pods-Hackthe_sleepTests.debug.xcconfig */,
+				225A55B4C4863A4CED890937 /* Pods-Hackthe_sleepTests.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
+		45C2B17D2132D4120091218A = {
+			isa = PBXGroup;
+			children = (
+				45C2B1882132D4120091218A /* Hackthe_sleep */,
+				45C2B19D2132D4140091218A /* Hackthe_sleepTests */,
+				45C2B1872132D4120091218A /* Products */,
+				271B5E0BF47439FD613E2D83 /* Pods */,
+				50D61F914AFFBB7995AFB082 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		45C2B1872132D4120091218A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				45C2B1862132D4120091218A /* Hackthe_sleep.app */,
+				45C2B19A2132D4140091218A /* Hackthe_sleepTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		45C2B1882132D4120091218A /* Hackthe_sleep */ = {
+			isa = PBXGroup;
+			children = (
+				45C2B1892132D4120091218A /* AppDelegate.swift */,
+				45C2B18B2132D4120091218A /* ViewController.swift */,
+				45C2B18D2132D4120091218A /* Main.storyboard */,
+				45C2B1902132D4140091218A /* Assets.xcassets */,
+				45C2B1922132D4140091218A /* LaunchScreen.storyboard */,
+				45C2B1952132D4140091218A /* Info.plist */,
+			);
+			path = Hackthe_sleep;
+			sourceTree = "<group>";
+		};
+		45C2B19D2132D4140091218A /* Hackthe_sleepTests */ = {
+			isa = PBXGroup;
+			children = (
+				45C2B19E2132D4140091218A /* Hackthe_sleepTests.swift */,
+				45C2B1A02132D4140091218A /* Info.plist */,
+			);
+			path = Hackthe_sleepTests;
+			sourceTree = "<group>";
+		};
+		50D61F914AFFBB7995AFB082 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				33AF06C68CF23B0DF59A38BF /* Pods_Hackthe_sleep.framework */,
+				27634F6B6FC6873BD9B4A858 /* Pods_Hackthe_sleepTests.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		45C2B1852132D4120091218A /* Hackthe_sleep */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 45C2B1A32132D4140091218A /* Build configuration list for PBXNativeTarget "Hackthe_sleep" */;
+			buildPhases = (
+				E1CA4D4B2D8475854D149506 /* [CP] Check Pods Manifest.lock */,
+				45C2B1822132D4120091218A /* Sources */,
+				45C2B1832132D4120091218A /* Frameworks */,
+				45C2B1842132D4120091218A /* Resources */,
+				541F145B93E17A3308E60CE6 /* [CP] Embed Pods Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Hackthe_sleep;
+			productName = Hackthe_sleep;
+			productReference = 45C2B1862132D4120091218A /* Hackthe_sleep.app */;
+			productType = "com.apple.product-type.application";
+		};
+		45C2B1992132D4140091218A /* Hackthe_sleepTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 45C2B1A62132D4140091218A /* Build configuration list for PBXNativeTarget "Hackthe_sleepTests" */;
+			buildPhases = (
+				E4B39AE47C2D46E8495EECAE /* [CP] Check Pods Manifest.lock */,
+				45C2B1962132D4140091218A /* Sources */,
+				45C2B1972132D4140091218A /* Frameworks */,
+				45C2B1982132D4140091218A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				45C2B19C2132D4140091218A /* PBXTargetDependency */,
+			);
+			name = Hackthe_sleepTests;
+			productName = Hackthe_sleepTests;
+			productReference = 45C2B19A2132D4140091218A /* Hackthe_sleepTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		45C2B17E2132D4120091218A /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 0940;
+				LastUpgradeCheck = 0940;
+				ORGANIZATIONNAME = "HongYi Tian";
+				TargetAttributes = {
+					45C2B1852132D4120091218A = {
+						CreatedOnToolsVersion = 9.4.1;
+						SystemCapabilities = {
+							com.apple.BackgroundModes = {
+								enabled = 1;
+							};
+						};
+					};
+					45C2B1992132D4140091218A = {
+						CreatedOnToolsVersion = 9.4.1;
+						TestTargetID = 45C2B1852132D4120091218A;
+					};
+				};
+			};
+			buildConfigurationList = 45C2B1812132D4120091218A /* Build configuration list for PBXProject "Hackthe_sleep" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 45C2B17D2132D4120091218A;
+			productRefGroup = 45C2B1872132D4120091218A /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				45C2B1852132D4120091218A /* Hackthe_sleep */,
+				45C2B1992132D4140091218A /* Hackthe_sleepTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		45C2B1842132D4120091218A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				45C2B1942132D4140091218A /* LaunchScreen.storyboard in Resources */,
+				45C2B1912132D4140091218A /* Assets.xcassets in Resources */,
+				45C2B18F2132D4120091218A /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		45C2B1982132D4140091218A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		541F145B93E17A3308E60CE6 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${SRCROOT}/Pods/Target Support Files/Pods-Hackthe_sleep/Pods-Hackthe_sleep-frameworks.sh",
+				"${PODS_ROOT}/Mapbox-iOS-SDK/dynamic/Mapbox.framework",
+				"${PODS_ROOT}/Mapbox-iOS-SDK/dynamic/Mapbox.framework.dSYM",
+				"${BUILT_PRODUCTS_DIR}/MapboxCoreNavigation/MapboxCoreNavigation.framework",
+				"${BUILT_PRODUCTS_DIR}/MapboxDirections.swift/MapboxDirections.framework",
+				"${BUILT_PRODUCTS_DIR}/MapboxMobileEvents/MapboxMobileEvents.framework",
+				"${BUILT_PRODUCTS_DIR}/MapboxNavigation/MapboxNavigation.framework",
+				"${BUILT_PRODUCTS_DIR}/MapboxSpeech/MapboxSpeech.framework",
+				"${BUILT_PRODUCTS_DIR}/Polyline/Polyline.framework",
+				"${BUILT_PRODUCTS_DIR}/Solar/Solar.framework",
+				"${BUILT_PRODUCTS_DIR}/Turf/Turf.framework",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Mapbox.framework",
+				"${DWARF_DSYM_FOLDER_PATH}/Mapbox.framework.dSYM",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MapboxCoreNavigation.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MapboxDirections.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MapboxMobileEvents.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MapboxNavigation.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MapboxSpeech.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Polyline.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Solar.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Turf.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Hackthe_sleep/Pods-Hackthe_sleep-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		E1CA4D4B2D8475854D149506 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Hackthe_sleep-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		E4B39AE47C2D46E8495EECAE /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Hackthe_sleepTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		45C2B1822132D4120091218A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				45C2B18C2132D4120091218A /* ViewController.swift in Sources */,
+				45C2B18A2132D4120091218A /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		45C2B1962132D4140091218A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				45C2B19F2132D4140091218A /* Hackthe_sleepTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		45C2B19C2132D4140091218A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 45C2B1852132D4120091218A /* Hackthe_sleep */;
+			targetProxy = 45C2B19B2132D4140091218A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		45C2B18D2132D4120091218A /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				45C2B18E2132D4120091218A /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		45C2B1922132D4140091218A /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				45C2B1932132D4140091218A /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		45C2B1A12132D4140091218A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		45C2B1A22132D4140091218A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		45C2B1A42132D4140091218A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = A8CBC42B17A0539311D0664A /* Pods-Hackthe_sleep.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 9HNG483DS8;
+				INFOPLIST_FILE = Hackthe_sleep/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "ECE.Hackthe-sleep";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		45C2B1A52132D4140091218A /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1F1D24920629BDDE4EC2E5D0 /* Pods-Hackthe_sleep.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 9HNG483DS8;
+				INFOPLIST_FILE = Hackthe_sleep/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "ECE.Hackthe-sleep";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		45C2B1A72132D4140091218A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = AC3D574C9B4912BDEC7DD162 /* Pods-Hackthe_sleepTests.debug.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 9HNG483DS8;
+				INFOPLIST_FILE = Hackthe_sleepTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "ECE.Hackthe-sleepTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Hackthe_sleep.app/Hackthe_sleep";
+			};
+			name = Debug;
+		};
+		45C2B1A82132D4140091218A /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 225A55B4C4863A4CED890937 /* Pods-Hackthe_sleepTests.release.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 9HNG483DS8;
+				INFOPLIST_FILE = Hackthe_sleepTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "ECE.Hackthe-sleepTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Hackthe_sleep.app/Hackthe_sleep";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		45C2B1812132D4120091218A /* Build configuration list for PBXProject "Hackthe_sleep" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				45C2B1A12132D4140091218A /* Debug */,
+				45C2B1A22132D4140091218A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		45C2B1A32132D4140091218A /* Build configuration list for PBXNativeTarget "Hackthe_sleep" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				45C2B1A42132D4140091218A /* Debug */,
+				45C2B1A52132D4140091218A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		45C2B1A62132D4140091218A /* Build configuration list for PBXNativeTarget "Hackthe_sleepTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				45C2B1A72132D4140091218A /* Debug */,
+				45C2B1A82132D4140091218A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 45C2B17E2132D4120091218A /* Project object */;
+}

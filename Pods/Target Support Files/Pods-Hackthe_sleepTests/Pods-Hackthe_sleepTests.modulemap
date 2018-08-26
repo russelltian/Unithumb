@@ -1,0 +1,6 @@
+framework module Pods_Hackthe_sleepTests {
+  umbrella header "Pods-Hackthe_sleepTests-umbrella.h"
+
+  export *
+  module * { export * }
+}
