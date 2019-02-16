@@ -3,9 +3,10 @@ import GoogleMaps
 import CoreBluetooth
 
 
-class YourViewController: UIViewController {
+class ViewController: UIViewController {
     
     // You don't need to modify the default init(nibName:bundle:) method.
+    var mapView: GMSMapView?
     
     override func loadView() {
         
@@ -20,6 +21,19 @@ class YourViewController: UIViewController {
         marker.position = CLLocationCoordinate2D(latitude: 37.621262, longitude: -122.378945)
         marker.title = "SFO Airport"
         marker.map = mapView
+        
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title:"😂",style:.plain, target: self, action: Selector(("next")))
+        
+    }
+    
+    func next(){
+        let nextlocation = CLLocationCoordinate2D(latitude: 37.621262, longitude: -123)
+        mapView?.camera = GMSCameraPosition.camera(withLatitude: nextlocation.latitude, longitude: nextlocation.longitude, zoom: 15)
+        
+        let marker = GMSMarker(position: nextlocation)
+        marker.title = "😂"
+        marker.map = mapView
+
     }
 }
 //class ViewController: UIViewController, MGLMapViewDelegate,CBPeripheralDelegate {

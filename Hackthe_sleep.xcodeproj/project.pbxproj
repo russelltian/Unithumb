@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		3CE12DE38E833EBFAE72CF73 /* libPods-Hackthe_sleep.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C36CE8E18810DF42493BCD27 /* libPods-Hackthe_sleep.a */; };
+		453BBA2E2217543600B85178 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 453BBA2D2217543600B85178 /* Default-568h@2x.png */; };
 		45C2B18A2132D4120091218A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C2B1892132D4120091218A /* AppDelegate.swift */; };
 		45C2B18C2132D4120091218A /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C2B18B2132D4120091218A /* ViewController.swift */; };
 		45C2B18F2132D4120091218A /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 45C2B18D2132D4120091218A /* Main.storyboard */; };
@@ -28,6 +29,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		453BBA2D2217543600B85178 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		45C2B1862132D4120091218A /* Hackthe_sleep.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hackthe_sleep.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		45C2B1892132D4120091218A /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		45C2B18B2132D4120091218A /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -76,6 +78,7 @@
 		45C2B17D2132D4120091218A = {
 			isa = PBXGroup;
 			children = (
+				453BBA2D2217543600B85178 /* Default-568h@2x.png */,
 				45C2B1882132D4120091218A /* Hackthe_sleep */,
 				45C2B19D2132D4140091218A /* Hackthe_sleepTests */,
 				45C2B1872132D4120091218A /* Products */,
@@ -175,6 +178,7 @@
 				TargetAttributes = {
 					45C2B1852132D4120091218A = {
 						CreatedOnToolsVersion = 9.4.1;
+						LastSwiftMigration = 1010;
 						SystemCapabilities = {
 							com.apple.BackgroundModes = {
 								enabled = 1;
@@ -183,6 +187,7 @@
 					};
 					45C2B1992132D4140091218A = {
 						CreatedOnToolsVersion = 9.4.1;
+						LastSwiftMigration = 1010;
 						TestTargetID = 45C2B1852132D4120091218A;
 					};
 				};
@@ -214,6 +219,7 @@
 				45C2B1942132D4140091218A /* LaunchScreen.storyboard in Resources */,
 				45C2B1912132D4140091218A /* Assets.xcassets in Resources */,
 				45CDC46F221692FD000E7AC8 /* Podfile in Resources */,
+				453BBA2E2217543600B85178 /* Default-568h@2x.png in Resources */,
 				45C2B18F2132D4120091218A /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -448,7 +454,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "ECE.Hackthe-sleep";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -467,7 +473,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "ECE.Hackthe-sleep";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -487,7 +493,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "ECE.Hackthe-sleepTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Hackthe_sleep.app/Hackthe_sleep";
 			};
@@ -508,7 +514,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "ECE.Hackthe-sleepTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Hackthe_sleep.app/Hackthe_sleep";
 			};
