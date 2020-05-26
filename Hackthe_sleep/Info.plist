@@ -46,8 +46,11 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>MGLMapboxAccessToken</key>
-	<string>pk.eyJ1IjoicnVzc2VsdCIsImEiOiJjamw0bmdpbWMyZHJ2M3Zuc2xiZW4yN2VjIn0.B1nZwOaPkAHtchRMvBiwRw</string>
+	<key>LSApplicationQueriesSchemes</key>
+    <array>
+        <string>googlechromes</string>
+        <string>comgooglemaps</string>
+    </array>
     <key>NSLocationWhenInUseUsageDescription</key>
     <string> Shows your location on the map </string>
 </dict>

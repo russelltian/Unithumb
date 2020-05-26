@@ -2,9 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "group:../box/box/Location.gpx">
-   </FileRef>
-   <FileRef
       location = "group:Hackthe_sleep.xcodeproj">
    </FileRef>
    <FileRef
