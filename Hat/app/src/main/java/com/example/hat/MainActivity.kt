@@ -9,14 +9,20 @@ import android.view.MenuItem
 
 class MainActivity : AppCompatActivity() {
 
+    fun createSocketClient(){
+        // start a socket connection
+        var socket_obj = SocketClient("192.168.0.23",8000)
+        socket_obj.run()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(findViewById(R.id.toolbar))
-
-        findViewById<FloatingActionButton>(R.id.fab).setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show()
+        findViewById<FloatingActionButton>(R.id.fab).setOnClickListener {
+//                view ->Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+//                    .setAction("Connect", createSocketClient()).show()
+            createSocketClient()
         }
     }
 
