@@ -12,11 +12,11 @@ import kotlin.concurrent.thread
 
 class MainActivity : AppCompatActivity() {
     //learn from this! https://examples.javacodegeeks.com/core-java/nio/channels/asynchronoussocketchannel/java-nio-channels-asynchronoussocketchannel-example/
-    var socket_obj=  SocketClient()
+    var socket_obj=  SocketClient("10.0.2.2",8000)
     fun createSocketClient(){
         //start a socket connection
         thread{
-            socket_obj.run("10.0.2.2",8000)
+            socket_obj.run()
         }
     }
 
