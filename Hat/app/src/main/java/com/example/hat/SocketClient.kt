@@ -1,11 +1,39 @@
 package com.example.hat
 import java.io.OutputStream
+import java.net.InetSocketAddress
 import java.net.Socket
+import java.nio.ByteBuffer
+import java.nio.channels.AsynchronousSocketChannel
 import java.nio.charset.Charset
 import java.util.*
+import java.util.concurrent.Future
 import kotlin.concurrent.thread
 
-class SocketClient(address: String, port: Int){
+class SocketClient(){
+    var client: AsynchronousSocketChannel = AsynchronousSocketChannel.open()
+    var connected: Boolean = false
+    fun run(address: String, port: Int){
+        val hostAddress = InetSocketAddress(address, port)
+
+        try {
+            if (!connected) {
+                val future = client.connect(hostAddress)
+                future.get() // should return NULL
+                connected = true;
+            }
+            if (BuildConfig.DEBUG && !client.isOpen()) {
+                error("Assertion failed, the connection socket is not opened")
+            }
+            val msg = "hello I am the phone"
+            client.write(ByteBuffer.wrap(msg.toByteArray()))
+        } catch (e:Exception){
+                println("Socket failed to connect : $e")
+        }
+    }
+
+
+}
+class SocketClient1(address: String, port: Int){
     private val connection: Socket = Socket(address, port)
     private var connected: Boolean = true
 
