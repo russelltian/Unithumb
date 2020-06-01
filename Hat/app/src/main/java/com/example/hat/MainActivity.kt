@@ -1,18 +1,40 @@
 package com.example.hat
 
 import android.os.Bundle
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.snackbar.Snackbar
-import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
+import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import java.net.InetSocketAddress
+import java.nio.ByteBuffer
+import java.nio.channels.AsynchronousSocketChannel
+import kotlin.concurrent.thread
 
 class MainActivity : AppCompatActivity() {
+    //learn from this! https://examples.javacodegeeks.com/core-java/nio/channels/asynchronoussocketchannel/java-nio-channels-asynchronoussocketchannel-example/
+    val client: AsynchronousSocketChannel = AsynchronousSocketChannel.open()
 
     fun createSocketClient(){
-        // start a socket connection
-        var socket_obj = SocketClient("192.168.0.23",8000)
-        socket_obj.run()
+//         start a socket connection
+//        var socket_obj = SocketClient("192.168.0.23",8000)
+//        socket_obj.run()
+
+        thread{
+            val hostAddress = InetSocketAddress("10.0.2.2", 65432)
+            try {
+                val future = client.connect(hostAddress)
+                future.get()
+                val msg = "hello I am the phone"
+                client.write(ByteBuffer.wrap(msg.toByteArray()))
+
+            }catch (e:Exception){
+                println("failed to connect")
+            }
+
+            val messages = arrayOf("Time goes fast.", "What now?", "Bye.")
+        }
+
+
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
