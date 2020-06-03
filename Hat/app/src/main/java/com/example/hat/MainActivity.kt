@@ -16,7 +16,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(findViewById(R.id.toolbar))
-        SocketInstance.setup(address = "10.0.2.2", port = 8001)
+//        SocketInstance.setup(address = "10.0.2.2", port = 8001)
+        SocketInstance.setup(address = "192.168.0.29", port = 8000)
         findViewById<FloatingActionButton>(R.id.fab).setOnClickListener {
 //                view ->Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
 //                    .setAction("Connect", createSocketClient()).show()
