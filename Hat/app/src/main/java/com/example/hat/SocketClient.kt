@@ -23,7 +23,7 @@ class SocketClient(address: String, port: Int){
                 future.get() // should return NULL
                 connected = true
             }
-            if (BuildConfig.DEBUG && !client.isOpen()) {
+            if (BuildConfig.DEBUG && !client.isOpen) {
                 error("Assertion failed, the connection socket is not opened")
             }
             val msg = "hello I am the phone"
@@ -38,9 +38,9 @@ class SocketClient(address: String, port: Int){
                 if (!connected) {
                     val future = client.connect(hostAddress)
                     future.get() // should return NULL
-                    connected = true;
+                    connected = true
                 }
-                if (BuildConfig.DEBUG && !client.isOpen()) {
+                if (BuildConfig.DEBUG && !client.isOpen) {
                     error("Assertion failed, the connection socket is not opened")
                 }
                 client.write(ByteBuffer.wrap(message.toByteArray()))
@@ -48,6 +48,5 @@ class SocketClient(address: String, port: Int){
                 println("Socket failed to connect : $e")
             }
         }
-
     }
 }
