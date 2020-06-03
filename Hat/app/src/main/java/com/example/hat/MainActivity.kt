@@ -11,15 +11,6 @@ import java.nio.channels.AsynchronousSocketChannel
 import kotlin.concurrent.thread
 
 class MainActivity : AppCompatActivity() {
-    //learn from this! https://examples.javacodegeeks.com/core-java/nio/channels/asynchronoussocketchannel/java-nio-channels-asynchronoussocketchannel-example/
-    var socket_obj=  SocketClient("10.0.2.2",8000)
-    fun createSocketClient(){
-        //start a socket connection
-        thread{
-            socket_obj.run()
-        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -27,7 +18,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<FloatingActionButton>(R.id.fab).setOnClickListener {
 //                view ->Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
 //                    .setAction("Connect", createSocketClient()).show()
-            createSocketClient()
+//            createSocketClient()
         }
     }
 

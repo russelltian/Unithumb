@@ -6,6 +6,9 @@ import kotlin.concurrent.thread
 
 /*
 There should be only one socket object that connects with the hat
+
+learn from this! https://examples.javacodegeeks.com/core-java/nio/channels/asynchronoussocketchannel/java-nio-channels-asynchronoussocketchannel-example/
+
  */
 class SocketClient(address: String, port: Int){
     var client: AsynchronousSocketChannel = AsynchronousSocketChannel.open()
@@ -48,5 +51,9 @@ class SocketClient(address: String, port: Int){
                 println("Socket failed to connect : $e")
             }
         }
+    }
+    fun close(){
+        client.close()
+        connected = false
     }
 }
