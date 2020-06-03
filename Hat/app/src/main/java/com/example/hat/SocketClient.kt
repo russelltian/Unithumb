@@ -10,7 +10,9 @@ There should be only one socket object that connects with the hat
 learn from this! https://examples.javacodegeeks.com/core-java/nio/channels/asynchronoussocketchannel/java-nio-channels-asynchronoussocketchannel-example/
 
  */
-class SocketClient(address: String, port: Int){
+object SocketClient{
+    var address = "10.0.2.2"
+    var port = 8000
     var client: AsynchronousSocketChannel = AsynchronousSocketChannel.open()
     var connected: Boolean = false
     val hostAddress = InetSocketAddress(address, port)
