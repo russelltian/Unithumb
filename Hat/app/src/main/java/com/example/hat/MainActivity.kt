@@ -3,6 +3,7 @@ package com.example.hat
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.net.InetSocketAddress
@@ -15,6 +16,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(findViewById(R.id.toolbar))
+        SocketInstance.setup(address = "10.0.2.2", port = 8001)
         findViewById<FloatingActionButton>(R.id.fab).setOnClickListener {
 //                view ->Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
 //                    .setAction("Connect", createSocketClient()).show()
