@@ -74,6 +74,7 @@ object SocketInstance {
         thread{
             try {
                 if (!connected) {
+                    print("Socket not connected yet")
                     val future = client.connect(hostAddress)
                     future.get() // should return NULL
                     connected = true
