@@ -32,8 +32,11 @@ class SecondFragment : Fragment() {
             SocketInstance.sendMessage("right")
         }
         view.findViewById<Button>(R.id.button_return_main).setOnClickListener {
-            SocketInstance.close()
             findNavController().navigate(R.id.action_SecondFragment_to_FirstFragment)
+        }
+
+        view.findViewById<Button>(R.id.toggleButton).setOnClickListener {
+            SocketInstance.sendMessage("stop")
         }
     }
 }

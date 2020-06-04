@@ -3,13 +3,8 @@ package com.example.hat
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import java.net.InetSocketAddress
-import java.nio.ByteBuffer
-import java.nio.channels.AsynchronousSocketChannel
-import kotlin.concurrent.thread
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
