@@ -22,24 +22,24 @@ import com.mapbox.mapboxsdk.maps.MapView
 import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
 import com.mapbox.mapboxsdk.maps.Style
-import com.mapbox.mapboxsdk.plugins.annotation.Symbol
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions
 import com.mapbox.mapboxsdk.style.layers.Property.ICON_ROTATION_ALIGNMENT_VIEWPORT
-import com.mapbox.mapboxsdk.style.layers.PropertyFactory
+//import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute
+import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute
 import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsListener,MapboxMap.OnMapClickListener
+class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsListener
 {
     private var mapView: MapView? = null
     private var map: MapboxMap?= null
     private var permissionsManager: PermissionsManager = PermissionsManager(this)
 
     private var startButton: Button?=null
-    private var navigationMapRoute: NavigationRoute? = null
+    private var navigationMapRoute: NavigationMapRoute? = null
 
     //annotation
     private var symbolManager:SymbolManager?=null
@@ -98,6 +98,13 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     override fun onMapReady(mapboxMap: MapboxMap) {
         this.map = mapboxMap
         mapboxMap.addOnMapClickListener{click->
+
+            val origin =
+                Point.fromLngLat(-77.03613, 38.90992)
+            val destination =
+                Point.fromLngLat(click.longitude,click.latitude)
+
+            getRoute(origin,destination)
             symbolManager?.deleteAll()
             symbolManager?.create(
                 SymbolOptions()
@@ -123,12 +130,6 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         }
     }
 
-    override fun onMapClick(point: LatLng): Boolean {
-        //destinationMarker = map?.addMarker(MarkerOptions())
-         //   .position(LatLng(37.3861,122.0839))
-          //  .title("Google")
-        return true
-    }
     private fun getRoute(origin: Point, destination: Point){
         Mapbox.getAccessToken()?.let {
             NavigationRoute.builder(this)
@@ -148,7 +149,15 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                             Log.e("MapNavigationActivity","No route found.")
                             return
                         }
-                      //   navigationMapRoute = NavigationRoute(body.routes())
+
+                        navigationMapRoute = mapView?.let { it1 ->
+                            map?.let { it2 ->
+                                NavigationMapRoute(null,
+                                    it1, it2
+                                )
+                            }
+                        }
+                        navigationMapRoute?.addRoute(body.routes().first())
                     }
 
                     override fun onFailure(call: Call<DirectionsResponse>, t: Throwable) {
