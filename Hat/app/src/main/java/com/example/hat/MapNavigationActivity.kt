@@ -1,6 +1,8 @@
 package com.example.hat
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
 import android.os.PersistableBundle
@@ -8,6 +10,7 @@ import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.api.directions.v5.models.DirectionsResponse
@@ -27,9 +30,8 @@ import com.mapbox.mapboxsdk.maps.Style
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions
 import com.mapbox.mapboxsdk.style.layers.Property.ICON_ROTATION_ALIGNMENT_VIEWPORT
-import com.mapbox.services.android.navigation.ui.v5.NavigationLauncher
-import com.mapbox.services.android.navigation.ui.v5.NavigationLauncherOptions
 import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute
+import com.mapbox.services.android.navigation.v5.location.replay.ReplayRouteLocationEngine
 import com.mapbox.services.android.navigation.v5.navigation.MapboxNavigation
 import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute
 import com.mapbox.services.android.navigation.v5.routeprogress.ProgressChangeListener
@@ -38,7 +40,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsListener
+class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsListener,ProgressChangeListener
 {
     private var mapView: MapView? = null
     private var map: MapboxMap?= null
@@ -51,15 +53,23 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     //annotation
     private var symbolManager:SymbolManager?=null
 
-    val mapRouteProgressChangeListener = object: ProgressChangeListener{
-        override fun onProgressChange(location: Location?, routeProgress: RouteProgress?) {
-            if (routeProgress != null) {
-                Log.i("onProgressChange", "onProgressChange" + routeProgress.legIndex())
-            }
-        }
-    }
+//    val mapRouteProgressChangeListener = object: ProgressChangeListener{
+//        override fun onProgressChange(location: Location?, routeProgress: RouteProgress?) {
+//            if (routeProgress != null) {
+//                Log.i("onProgressChange", "onProgressChange" + routeProgress.legIndex())
+//            }
+//        }
+//    }
 
     private var mapboxNavigation:MapboxNavigation ?=null
+    private val locationEngine = ReplayRouteLocationEngine();
+
+
+    override fun onProgressChange(location: Location?, routeProgress: RouteProgress?) {
+        if (routeProgress != null) {
+            Log.i("onProgressChange", "onProgressChange " + routeProgress.distanceRemaining())
+        }
+    }
 
 
     //location
@@ -72,7 +82,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         Mapbox.getInstance(this, getString(R.string.mapbox_access_token))
 
         mapboxNavigation = MapboxNavigation(this, getString(R.string.mapbox_access_token))
-        mapboxNavigation!!.addProgressChangeListener(mapRouteProgressChangeListener)
+        mapboxNavigation!!.addProgressChangeListener(this)
 
         // This contains the MapView in XML and needs to be called after getting access token
         setContentView(R.layout.activity_map_navigation)
@@ -92,6 +102,28 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 //                .shouldSimulateRoute(true)
 //                .build()
 //            NavigationLauncher.startNavigation(this,options)
+
+            locationEngine.assign(route)
+            mapboxNavigation?.setLocationEngine(locationEngine);
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return@setOnClickListener
+            }
+            map?.getLocationComponent()?.setLocationComponentEnabled(true);
+            mapboxNavigation?.startNavigation(route!!);
         }
 
 
@@ -205,7 +237,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                         }
                         route = body.routes().first()
                         navigationMapRoute?.addRoute(body.routes().first())
-                        mapboxNavigation?.startNavigation(body.routes().first())
+//                        mapboxNavigation?.startNavigation(body.routes().first())
 //                        val mapboxNavigation = navigationMapRoute.get_mapboxNavigation
 //                        mapboxNavigation.addProgressChangeListener()
 //                        navigationMapRoute?.addProgressChangeListener()
