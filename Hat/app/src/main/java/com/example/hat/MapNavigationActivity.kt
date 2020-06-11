@@ -67,7 +67,8 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 
     override fun onProgressChange(location: Location?, routeProgress: RouteProgress?) {
         if (routeProgress != null) {
-            Log.i("onProgressChange", "onProgressChange " + routeProgress.distanceRemaining())
+            Log.i("onProgressChange", "distanceRemaining " + routeProgress.distanceRemaining())
+            Log.i("onProgressChange", "upComingStep " + routeProgress.currentLegProgress().upComingStep().toString())
         }
     }
 
@@ -234,6 +235,8 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                                     )
                                 }
                             }
+                            navigationMapRoute?.updateRouteVisibilityTo(true)
+                            navigationMapRoute?.updateRouteArrowVisibilityTo(true)
                         }
                         route = body.routes().first()
                         navigationMapRoute?.addRoute(body.routes().first())
