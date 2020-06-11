@@ -46,7 +46,6 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     private var map: MapboxMap?= null
     private var permissionsManager: PermissionsManager = PermissionsManager(this)
 
-    private var startButton: Button?=null
     //navigation
     private var navigationMapRoute: NavigationMapRoute? = null
     private var route: DirectionsRoute ?= null
@@ -62,13 +61,19 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 //    }
 
     private var mapboxNavigation:MapboxNavigation ?=null
-    private val locationEngine = ReplayRouteLocationEngine();
+    private val locationEngine = ReplayRouteLocationEngine()
 
 
+    @SuppressLint("LogNotTimber")
     override fun onProgressChange(location: Location?, routeProgress: RouteProgress?) {
         if (routeProgress != null) {
-            Log.i("onProgressChange", "distanceRemaining " + routeProgress.distanceRemaining())
-            Log.i("onProgressChange", "upComingStep " + routeProgress.currentLegProgress().upComingStep().toString())
+            Log.i("onProgressChange",
+                "distanceRemaining " + routeProgress.distanceRemaining()
+            )
+            Log.i(
+                "onProgressChange",
+                "upComingStep " + routeProgress.currentLegProgress().upComingStep().toString()
+            )
         }
     }
 
@@ -97,15 +102,8 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
             if (route == null){
                 return@setOnClickListener
             }
-
-//            val options = NavigationLauncherOptions.builder()
-//                .directionsRoute(route)
-//                .shouldSimulateRoute(true)
-//                .build()
-//            NavigationLauncher.startNavigation(this,options)
-
             locationEngine.assign(route)
-            mapboxNavigation?.setLocationEngine(locationEngine);
+            mapboxNavigation?.locationEngine = locationEngine
             if (ActivityCompat.checkSelfPermission(
                     this,
                     Manifest.permission.ACCESS_FINE_LOCATION
@@ -123,8 +121,8 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                 // for ActivityCompat#requestPermissions for more details.
                 return@setOnClickListener
             }
-            map?.getLocationComponent()?.setLocationComponentEnabled(true);
-            mapboxNavigation?.startNavigation(route!!);
+            map?.locationComponent?.isLocationComponentEnabled = true
+            mapboxNavigation?.startNavigation(route!!)
         }
 
 
@@ -217,8 +215,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                         call: Call<DirectionsResponse>,
                         response: Response<DirectionsResponse>
                     ) {
-                        val routeResponse = response
-                        val body = routeResponse.body() ?:return
+                        val body = response.body() ?:return
 
                         if (body.routes().count() == 0){
                             Log.e("MapNavigationActivity","No route found.")
@@ -255,8 +252,6 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                 })
         }
     }
-
-
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
