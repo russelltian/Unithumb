@@ -1,6 +1,7 @@
 package com.example.hat
 
 import android.annotation.SuppressLint
+import android.location.Location
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.util.Log
@@ -29,7 +30,10 @@ import com.mapbox.mapboxsdk.style.layers.Property.ICON_ROTATION_ALIGNMENT_VIEWPO
 import com.mapbox.services.android.navigation.ui.v5.NavigationLauncher
 import com.mapbox.services.android.navigation.ui.v5.NavigationLauncherOptions
 import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute
+import com.mapbox.services.android.navigation.v5.navigation.MapboxNavigation
 import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute
+import com.mapbox.services.android.navigation.v5.routeprogress.ProgressChangeListener
+import com.mapbox.services.android.navigation.v5.routeprogress.RouteProgress
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -47,6 +51,17 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     //annotation
     private var symbolManager:SymbolManager?=null
 
+    val mapRouteProgressChangeListener = object: ProgressChangeListener{
+        override fun onProgressChange(location: Location?, routeProgress: RouteProgress?) {
+            if (routeProgress != null) {
+                Log.i("onProgressChange", "onProgressChange" + routeProgress.legIndex())
+            }
+        }
+    }
+
+    private var mapboxNavigation:MapboxNavigation ?=null
+
+
     //location
 //    private var origin:Point?= null
 //    private var destination:Point?= null
@@ -55,8 +70,14 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 
         // Map access token is configured here.
         Mapbox.getInstance(this, getString(R.string.mapbox_access_token))
+
+        mapboxNavigation = MapboxNavigation(this, getString(R.string.mapbox_access_token))
+        mapboxNavigation!!.addProgressChangeListener(mapRouteProgressChangeListener)
+
         // This contains the MapView in XML and needs to be called after getting access token
         setContentView(R.layout.activity_map_navigation)
+
+
 
         mapView = findViewById(R.id.mapView)
         mapView?.onCreate(savedInstanceState)
@@ -66,12 +87,14 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                 return@setOnClickListener
             }
 
-            val options = NavigationLauncherOptions.builder()
-                .directionsRoute(route)
-                .shouldSimulateRoute(true)
-                .build()
-            NavigationLauncher.startNavigation(this,options)
+//            val options = NavigationLauncherOptions.builder()
+//                .directionsRoute(route)
+//                .shouldSimulateRoute(true)
+//                .build()
+//            NavigationLauncher.startNavigation(this,options)
         }
+
+
 
     }
 
@@ -174,7 +197,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                         }else{
                             navigationMapRoute = mapView?.let { it1 ->
                                 map?.let { it2 ->
-                                    NavigationMapRoute(null,
+                                    NavigationMapRoute(mapboxNavigation,
                                         it1, it2
                                     )
                                 }
@@ -182,15 +205,24 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                         }
                         route = body.routes().first()
                         navigationMapRoute?.addRoute(body.routes().first())
+                        mapboxNavigation?.startNavigation(body.routes().first())
+//                        val mapboxNavigation = navigationMapRoute.get_mapboxNavigation
+//                        mapboxNavigation.addProgressChangeListener()
+//                        navigationMapRoute?.addProgressChangeListener()
                     }
 
                     @SuppressLint("LogNotTimber")
                     override fun onFailure(call: Call<DirectionsResponse>, t: Throwable) {
                         Log.e("MapNavigationActivity","Error: ${t.message}")
                     }
+
+
                 })
         }
     }
+
+
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -212,6 +244,8 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
             finish()
         }
     }
+
+
 
     override fun onStart(){
         super.onStart()
