@@ -72,6 +72,16 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                     "onProgressChange",
                     msg.size.toString() +" " + msg.toString()
                 )
+                val iterator = msg.iterator()
+                iterator.forEach {
+                    symbolManager?.create(
+                        SymbolOptions()
+                            .withLatLng(LatLng(it.latitude()/10,it.longitude()/10))
+                            .withIconImage("666")
+                            .withIconSize(0.5f)
+                    )
+                }
+
             }
 
         }
