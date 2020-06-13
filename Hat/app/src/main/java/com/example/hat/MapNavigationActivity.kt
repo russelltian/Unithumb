@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
+import com.mapbox.api.directions.v5.models.BannerInstructions
 import com.mapbox.api.directions.v5.models.DirectionsResponse
 import com.mapbox.api.directions.v5.models.DirectionsRoute
 import com.mapbox.geojson.Point
@@ -31,8 +32,7 @@ import com.mapbox.mapboxsdk.maps.Style
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions
 import com.mapbox.mapboxsdk.style.layers.Property.ICON_ROTATION_ALIGNMENT_VIEWPORT
-import com.mapbox.services.android.navigation.ui.v5.NavigationLauncher
-import com.mapbox.services.android.navigation.ui.v5.NavigationLauncherOptions
+import com.mapbox.services.android.navigation.ui.v5.listeners.BannerInstructionsListener
 import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute
 import com.mapbox.services.android.navigation.v5.location.replay.ReplayRouteLocationEngine
 import com.mapbox.services.android.navigation.v5.navigation.MapboxNavigation
@@ -44,6 +44,7 @@ import retrofit2.Callback
 import retrofit2.Response
 
 class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsListener,ProgressChangeListener
+
 {
     private var mapView: MapView? = null
     private var map: MapboxMap?= null
@@ -52,16 +53,10 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     //navigation
     private var navigationMapRoute: NavigationMapRoute? = null
     private var route: DirectionsRoute ?= null
+    private var globalDestination: Point ?= null
     //annotation
     private var symbolManager:SymbolManager?=null
 
-//    val mapRouteProgressChangeListener = object: ProgressChangeListener{
-//        override fun onProgressChange(location: Location?, routeProgress: RouteProgress?) {
-//            if (routeProgress != null) {
-//                Log.i("onProgressChange", "onProgressChange" + routeProgress.legIndex())
-//            }
-//        }
-//    }
 
     private var mapboxNavigation:MapboxNavigation ?=null
     private val locationEngine = ReplayRouteLocationEngine()
@@ -70,9 +65,6 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     @SuppressLint("LogNotTimber")
     override fun onProgressChange(location: Location?, routeProgress: RouteProgress?) {
         if (routeProgress != null) {
-//            Log.i("onProgressChange",
-//                "distanceRemaining " + routeProgress.distanceRemaining()
-//            )
             val raw_msg = routeProgress.currentLegProgress().upComingStep()?.geometry()
             if (raw_msg!=null){
                 val msg = PolylineUtils.decode(raw_msg,5)
@@ -97,11 +89,18 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 
         mapboxNavigation = MapboxNavigation(this, getString(R.string.mapbox_access_token))
         mapboxNavigation!!.addProgressChangeListener(this)
-
         // This contains the MapView in XML and needs to be called after getting access token
         setContentView(R.layout.activity_map_navigation)
 
-
+        mapboxNavigation!!.addOffRouteListener{
+            if (globalDestination != null){
+                map?.locationComponent?.lastKnownLocation?.longitude?.let { map?.locationComponent?.lastKnownLocation?.latitude?.let { it1 ->
+                    Point.fromLngLat(it,
+                        it1
+                    )
+                } }?.let { getRoute(it, globalDestination!!) }
+            }
+        }
 
         mapView = findViewById(R.id.mapView)
         mapView?.onCreate(savedInstanceState)
@@ -130,14 +129,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                 return@setOnClickListener
             }
             map?.locationComponent?.isLocationComponentEnabled = true
-//            mapboxNavigation?.startNavigation(route!!)
-
-            //try navigation launcher
-//            val options: NavigationLauncherOptions = NavigationLauncherOptions.builder()
-//                .directionsRoute(route)
-//                .shouldSimulateRoute(false)
-//                .build()
-//            NavigationLauncher.startNavigation(this, options)
+         //   mapboxNavigation?.startNavigation(route!!)
 
 
         }
@@ -146,40 +138,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 
     }
 
-    @SuppressLint("MissingPermission")
-    private fun enableLocationComponent(loadedMapStyle: Style) {
-        // Check if permissions are enabled and if not request
-        if (PermissionsManager.areLocationPermissionsGranted(this)) {
 
-            // Create and customize the LocationComponent's options
-            val customLocationComponentOptions = LocationComponentOptions.builder(this)
-                .trackingGesturesManagement(true)
-                .build()
-
-            val locationComponentActivationOptions = LocationComponentActivationOptions.builder(this, loadedMapStyle)
-                .locationComponentOptions(customLocationComponentOptions)
-                .build()
-
-            // Get an instance of the LocationComponent and then adjust its settings
-            map?.locationComponent?.apply {
-
-                // Activate the LocationComponent with options
-                activateLocationComponent(locationComponentActivationOptions)
-
-                // Enable to make the LocationComponent visible
-                isLocationComponentEnabled = true
-
-                // Set the LocationComponent's camera mode
-                cameraMode = CameraMode.TRACKING
-
-                // Set the LocationComponent's render mode
-                renderMode = RenderMode.COMPASS
-            }
-        } else {
-            permissionsManager = PermissionsManager(this)
-            permissionsManager.requestLocationPermissions(this)
-        }
-    }
     override fun onMapReady(mapboxMap: MapboxMap) {
         this.map = mapboxMap
         mapboxMap.addOnMapLongClickListener{click->
@@ -192,7 +151,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                 } }
             val destination: Point =
                 Point.fromLngLat(click.longitude,click.latitude)
-
+            globalDestination = destination
             if (origin != null) {
                 getRoute(origin,destination)
             }
@@ -270,6 +229,41 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         }
     }
 
+
+    @SuppressLint("MissingPermission")
+    private fun enableLocationComponent(loadedMapStyle: Style) {
+        // Check if permissions are enabled and if not request
+        if (PermissionsManager.areLocationPermissionsGranted(this)) {
+
+            // Create and customize the LocationComponent's options
+            val customLocationComponentOptions = LocationComponentOptions.builder(this)
+                .trackingGesturesManagement(true)
+                .build()
+
+            val locationComponentActivationOptions = LocationComponentActivationOptions.builder(this, loadedMapStyle)
+                .locationComponentOptions(customLocationComponentOptions)
+                .build()
+
+            // Get an instance of the LocationComponent and then adjust its settings
+            map?.locationComponent?.apply {
+
+                // Activate the LocationComponent with options
+                activateLocationComponent(locationComponentActivationOptions)
+
+                // Enable to make the LocationComponent visible
+                isLocationComponentEnabled = true
+
+                // Set the LocationComponent's camera mode
+                cameraMode = CameraMode.TRACKING
+
+                // Set the LocationComponent's render mode
+                renderMode = RenderMode.COMPASS
+            }
+        } else {
+            permissionsManager = PermissionsManager(this)
+            permissionsManager.requestLocationPermissions(this)
+        }
+    }
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
