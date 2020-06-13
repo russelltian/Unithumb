@@ -16,6 +16,7 @@ import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.api.directions.v5.models.DirectionsResponse
 import com.mapbox.api.directions.v5.models.DirectionsRoute
 import com.mapbox.geojson.Point
+import com.mapbox.geojson.utils.PolylineUtils
 import com.mapbox.mapboxsdk.Mapbox
 import com.mapbox.mapboxsdk.annotations.IconFactory
 import com.mapbox.mapboxsdk.geometry.LatLng
@@ -30,6 +31,8 @@ import com.mapbox.mapboxsdk.maps.Style
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions
 import com.mapbox.mapboxsdk.style.layers.Property.ICON_ROTATION_ALIGNMENT_VIEWPORT
+import com.mapbox.services.android.navigation.ui.v5.NavigationLauncher
+import com.mapbox.services.android.navigation.ui.v5.NavigationLauncherOptions
 import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute
 import com.mapbox.services.android.navigation.v5.location.replay.ReplayRouteLocationEngine
 import com.mapbox.services.android.navigation.v5.navigation.MapboxNavigation
@@ -67,13 +70,18 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     @SuppressLint("LogNotTimber")
     override fun onProgressChange(location: Location?, routeProgress: RouteProgress?) {
         if (routeProgress != null) {
-            Log.i("onProgressChange",
-                "distanceRemaining " + routeProgress.distanceRemaining()
-            )
-            Log.i(
-                "onProgressChange",
-                "upComingStep " + routeProgress.currentLegProgress().upComingStep().toString()
-            )
+//            Log.i("onProgressChange",
+//                "distanceRemaining " + routeProgress.distanceRemaining()
+//            )
+            val raw_msg = routeProgress.currentLegProgress().upComingStep()?.geometry()
+            if (raw_msg!=null){
+                val msg = PolylineUtils.decode(raw_msg,5)
+                Log.i(
+                    "onProgressChange",
+                    msg.size.toString() +" " + msg.toString()
+                )
+            }
+
         }
     }
 
@@ -122,7 +130,16 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                 return@setOnClickListener
             }
             map?.locationComponent?.isLocationComponentEnabled = true
-            mapboxNavigation?.startNavigation(route!!)
+//            mapboxNavigation?.startNavigation(route!!)
+
+            //try navigation launcher
+//            val options: NavigationLauncherOptions = NavigationLauncherOptions.builder()
+//                .directionsRoute(route)
+//                .shouldSimulateRoute(false)
+//                .build()
+//            NavigationLauncher.startNavigation(this, options)
+
+
         }
 
 
@@ -237,7 +254,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                         }
                         route = body.routes().first()
                         navigationMapRoute?.addRoute(body.routes().first())
-//                        mapboxNavigation?.startNavigation(body.routes().first())
+                        mapboxNavigation?.startNavigation(body.routes().first())
 //                        val mapboxNavigation = navigationMapRoute.get_mapboxNavigation
 //                        mapboxNavigation.addProgressChangeListener()
 //                        navigationMapRoute?.addProgressChangeListener()
