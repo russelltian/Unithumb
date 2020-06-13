@@ -13,7 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
-import com.mapbox.api.directions.v5.models.BannerInstructions
+import com.mapbox.api.directions.v5.DirectionsCriteria
 import com.mapbox.api.directions.v5.models.DirectionsResponse
 import com.mapbox.api.directions.v5.models.DirectionsRoute
 import com.mapbox.geojson.Point
@@ -32,7 +32,6 @@ import com.mapbox.mapboxsdk.maps.Style
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions
 import com.mapbox.mapboxsdk.style.layers.Property.ICON_ROTATION_ALIGNMENT_VIEWPORT
-import com.mapbox.services.android.navigation.ui.v5.listeners.BannerInstructionsListener
 import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute
 import com.mapbox.services.android.navigation.v5.location.replay.ReplayRouteLocationEngine
 import com.mapbox.services.android.navigation.v5.navigation.MapboxNavigation
@@ -42,6 +41,8 @@ import com.mapbox.services.android.navigation.v5.routeprogress.RouteProgress
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.lang.StrictMath.*
+import java.text.DecimalFormat
 
 class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsListener,ProgressChangeListener
 
@@ -65,25 +66,42 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     @SuppressLint("LogNotTimber")
     override fun onProgressChange(location: Location?, routeProgress: RouteProgress?) {
         if (routeProgress != null) {
-            val raw_msg = routeProgress.currentLegProgress().upComingStep()?.geometry()
-            if (raw_msg!=null){
-                val msg = PolylineUtils.decode(raw_msg,5)
+            val rawMsg = routeProgress.currentLegProgress().upComingStep()?.geometry()
+            if (rawMsg!=null) {
+                val msg = PolylineUtils.decode(rawMsg, 5)
                 Log.i(
                     "onProgressChange",
                     msg.size.toString() +" " + msg.toString()
                 )
-                val iterator = msg.iterator()
-                iterator.forEach {
-                    symbolManager?.create(
-                        SymbolOptions()
-                            .withLatLng(LatLng(it.latitude()/10,it.longitude()/10))
-                            .withIconImage("666")
-                            .withIconSize(0.5f)
-                    )
-                }
-
+                val origin =
+                        map?.locationComponent?.lastKnownLocation?.longitude?.let {
+                            map?.locationComponent?.lastKnownLocation?.latitude?.let { it1 ->
+                                Point.fromLngLat(
+                                    it,
+                                    it1
+                                )
+                            }
+                        }
+                val segment = Point.fromLngLat(msg[0].longitude()/10, msg[0].latitude()/10)
+                symbolManager?.create(SymbolOptions()
+                    .withLatLng(LatLng(segment.latitude(),segment.longitude()))
+                    .withIconImage("666")
+                    .withIconSize(0.4f)
+                )
+                symbolManager?.create(SymbolOptions()
+                    .withLatLng(LatLng(msg[5].latitude()/10,msg[5].longitude()/10))
+                    .withIconImage("666")
+                    .withIconSize(0.4f)
+                )
+                val bearingX = cos(segment.latitude())* sin(segment.longitude()- (origin?.longitude())!!)
+                val bearingY = cos(origin.latitude())*sin(segment.latitude()) -
+                        sin(origin.latitude())*cos(segment.latitude())*cos(segment.longitude()-origin.longitude())
+                val bearing = atan2(bearingX,bearingY) * 180 / Math.PI
+                val format = DecimalFormat("#.##")
+                val sendDegree = format.format(bearing)
+                Log.i("OnProgressChange", sendDegree)
+                SocketInstance.sendMessage(sendDegree.toString())
             }
-
         }
     }
 
@@ -141,7 +159,6 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
             map?.locationComponent?.isLocationComponentEnabled = true
          //   mapboxNavigation?.startNavigation(route!!)
 
-
         }
 
 
@@ -194,6 +211,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                 .accessToken(it)
                 .origin(origin)
                 .destination(destination)
+                .profile(DirectionsCriteria.PROFILE_WALKING)
                 .build()
                 .getRoute(object:Callback<DirectionsResponse>{
                     @SuppressLint("LogNotTimber")
