@@ -13,9 +13,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
+import com.mapbox.api.directions.v5.DirectionsCriteria
 import com.mapbox.api.directions.v5.models.DirectionsResponse
 import com.mapbox.api.directions.v5.models.DirectionsRoute
 import com.mapbox.geojson.Point
+import com.mapbox.geojson.utils.PolylineUtils
 import com.mapbox.mapboxsdk.Mapbox
 import com.mapbox.mapboxsdk.annotations.IconFactory
 import com.mapbox.mapboxsdk.geometry.LatLng
@@ -39,8 +41,11 @@ import com.mapbox.services.android.navigation.v5.routeprogress.RouteProgress
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.lang.StrictMath.*
+import java.text.DecimalFormat
 
 class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsListener,ProgressChangeListener
+
 {
     private var mapView: MapView? = null
     private var map: MapboxMap?= null
@@ -49,16 +54,10 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     //navigation
     private var navigationMapRoute: NavigationMapRoute? = null
     private var route: DirectionsRoute ?= null
+    private var globalDestination: Point ?= null
     //annotation
     private var symbolManager:SymbolManager?=null
 
-//    val mapRouteProgressChangeListener = object: ProgressChangeListener{
-//        override fun onProgressChange(location: Location?, routeProgress: RouteProgress?) {
-//            if (routeProgress != null) {
-//                Log.i("onProgressChange", "onProgressChange" + routeProgress.legIndex())
-//            }
-//        }
-//    }
 
     private var mapboxNavigation:MapboxNavigation ?=null
     private val locationEngine = ReplayRouteLocationEngine()
@@ -67,13 +66,42 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     @SuppressLint("LogNotTimber")
     override fun onProgressChange(location: Location?, routeProgress: RouteProgress?) {
         if (routeProgress != null) {
-            Log.i("onProgressChange",
-                "distanceRemaining " + routeProgress.distanceRemaining()
-            )
-            Log.i(
-                "onProgressChange",
-                "upComingStep " + routeProgress.currentLegProgress().upComingStep().toString()
-            )
+            val rawMsg = routeProgress.currentLegProgress().upComingStep()?.geometry()
+            if (rawMsg!=null) {
+                val msg = PolylineUtils.decode(rawMsg, 5)
+                Log.i(
+                    "onProgressChange",
+                    msg.size.toString() +" " + msg.toString()
+                )
+                val origin =
+                        map?.locationComponent?.lastKnownLocation?.longitude?.let {
+                            map?.locationComponent?.lastKnownLocation?.latitude?.let { it1 ->
+                                Point.fromLngLat(
+                                    it,
+                                    it1
+                                )
+                            }
+                        }
+                val segment = Point.fromLngLat(msg[0].longitude()/10, msg[0].latitude()/10)
+                symbolManager?.create(SymbolOptions()
+                    .withLatLng(LatLng(segment.latitude(),segment.longitude()))
+                    .withIconImage("666")
+                    .withIconSize(0.4f)
+                )
+                symbolManager?.create(SymbolOptions()
+                    .withLatLng(LatLng(msg[5].latitude()/10,msg[5].longitude()/10))
+                    .withIconImage("666")
+                    .withIconSize(0.4f)
+                )
+                val bearingX = cos(segment.latitude())* sin(segment.longitude()- (origin?.longitude())!!)
+                val bearingY = cos(origin.latitude())*sin(segment.latitude()) -
+                        sin(origin.latitude())*cos(segment.latitude())*cos(segment.longitude()-origin.longitude())
+                val bearing = atan2(bearingX,bearingY) * 180 / Math.PI
+                val format = DecimalFormat("#.##")
+                val sendDegree = format.format(bearing)
+                Log.i("OnProgressChange", sendDegree)
+                SocketInstance.sendMessage(sendDegree.toString())
+            }
         }
     }
 
@@ -89,11 +117,18 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 
         mapboxNavigation = MapboxNavigation(this, getString(R.string.mapbox_access_token))
         mapboxNavigation!!.addProgressChangeListener(this)
-
         // This contains the MapView in XML and needs to be called after getting access token
         setContentView(R.layout.activity_map_navigation)
 
-
+        mapboxNavigation!!.addOffRouteListener{
+            if (globalDestination != null){
+                map?.locationComponent?.lastKnownLocation?.longitude?.let { map?.locationComponent?.lastKnownLocation?.latitude?.let { it1 ->
+                    Point.fromLngLat(it,
+                        it1
+                    )
+                } }?.let { getRoute(it, globalDestination!!) }
+            }
+        }
 
         mapView = findViewById(R.id.mapView)
         mapView?.onCreate(savedInstanceState)
@@ -122,12 +157,106 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                 return@setOnClickListener
             }
             map?.locationComponent?.isLocationComponentEnabled = true
-            mapboxNavigation?.startNavigation(route!!)
+         //   mapboxNavigation?.startNavigation(route!!)
+
         }
 
 
 
     }
+
+
+    override fun onMapReady(mapboxMap: MapboxMap) {
+        this.map = mapboxMap
+        mapboxMap.addOnMapLongClickListener{click->
+
+            val origin =
+                map?.locationComponent?.lastKnownLocation?.longitude?.let { map?.locationComponent?.lastKnownLocation?.latitude?.let { it1 ->
+                    Point.fromLngLat(it,
+                        it1
+                    )
+                } }
+            val destination: Point =
+                Point.fromLngLat(click.longitude,click.latitude)
+            globalDestination = destination
+            if (origin != null) {
+                getRoute(origin,destination)
+            }
+            symbolManager?.deleteAll()
+            symbolManager?.create(
+                SymbolOptions()
+                    .withLatLng(LatLng(click.latitude,click.longitude))
+                    .withIconImage("666")
+                    .withIconSize(2.0f)
+            )
+            false
+        }
+        mapboxMap.setStyle(Style.MAPBOX_STREETS) {style->
+            // Madp is set up and the style has loaded. Now you can add data or make other map adjustments
+            enableLocationComponent(style)
+            //symbolManager = mapView?.let { SymbolManager(it,mapboxMap,style) }
+            symbolManager = mapView?.let { SymbolManager(it,mapboxMap, style) }
+            // set non-data-driven properties, such as:
+            symbolManager?.iconAllowOverlap = true
+            symbolManager?.iconIgnorePlacement = true
+            symbolManager?.iconTranslate = arrayOf(-4f, 5f)
+            symbolManager?.iconRotationAlignment = ICON_ROTATION_ALIGNMENT_VIEWPORT
+            style.addImage("666", IconFactory.getInstance(this).defaultMarker().bitmap)
+        }
+    }
+
+    private fun getRoute(origin: Point, destination: Point){
+        Mapbox.getAccessToken()?.let {
+            NavigationRoute.builder(this)
+                .accessToken(it)
+                .origin(origin)
+                .destination(destination)
+                .profile(DirectionsCriteria.PROFILE_WALKING)
+                .build()
+                .getRoute(object:Callback<DirectionsResponse>{
+                    @SuppressLint("LogNotTimber")
+                    override fun onResponse(
+                        call: Call<DirectionsResponse>,
+                        response: Response<DirectionsResponse>
+                    ) {
+                        val body = response.body() ?:return
+
+                        if (body.routes().count() == 0){
+                            Log.e("MapNavigationActivity","No route found.")
+                            return
+                        }
+                        if (navigationMapRoute != null){
+                            navigationMapRoute?.updateRouteVisibilityTo(false)
+                            navigationMapRoute?.updateRouteArrowVisibilityTo(false)
+                        }else{
+                            navigationMapRoute = mapView?.let { it1 ->
+                                map?.let { it2 ->
+                                    NavigationMapRoute(mapboxNavigation,
+                                        it1, it2
+                                    )
+                                }
+                            }
+                            navigationMapRoute?.updateRouteVisibilityTo(true)
+                            navigationMapRoute?.updateRouteArrowVisibilityTo(true)
+                        }
+                        route = body.routes().first()
+                        navigationMapRoute?.addRoute(body.routes().first())
+                        mapboxNavigation?.startNavigation(body.routes().first())
+//                        val mapboxNavigation = navigationMapRoute.get_mapboxNavigation
+//                        mapboxNavigation.addProgressChangeListener()
+//                        navigationMapRoute?.addProgressChangeListener()
+                    }
+
+                    @SuppressLint("LogNotTimber")
+                    override fun onFailure(call: Call<DirectionsResponse>, t: Throwable) {
+                        Log.e("MapNavigationActivity","Error: ${t.message}")
+                    }
+
+
+                })
+        }
+    }
+
 
     @SuppressLint("MissingPermission")
     private fun enableLocationComponent(loadedMapStyle: Style) {
@@ -163,96 +292,6 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
             permissionsManager.requestLocationPermissions(this)
         }
     }
-    override fun onMapReady(mapboxMap: MapboxMap) {
-        this.map = mapboxMap
-        mapboxMap.addOnMapLongClickListener{click->
-
-            val origin =
-                map?.locationComponent?.lastKnownLocation?.longitude?.let { map?.locationComponent?.lastKnownLocation?.latitude?.let { it1 ->
-                    Point.fromLngLat(it,
-                        it1
-                    )
-                } }
-            val destination: Point =
-                Point.fromLngLat(click.longitude,click.latitude)
-
-            if (origin != null) {
-                getRoute(origin,destination)
-            }
-            symbolManager?.deleteAll()
-            symbolManager?.create(
-                SymbolOptions()
-                    .withLatLng(LatLng(click.latitude,click.longitude))
-                    .withIconImage("666")
-                    .withIconSize(2.0f)
-            )
-            false
-        }
-        mapboxMap.setStyle(Style.MAPBOX_STREETS) {style->
-            // Madp is set up and the style has loaded. Now you can add data or make other map adjustments
-            enableLocationComponent(style)
-            //symbolManager = mapView?.let { SymbolManager(it,mapboxMap,style) }
-            symbolManager = mapView?.let { SymbolManager(it,mapboxMap, style) }
-            // set non-data-driven properties, such as:
-            symbolManager?.iconAllowOverlap = true
-            symbolManager?.iconIgnorePlacement = true
-            symbolManager?.iconTranslate = arrayOf(-4f, 5f)
-            symbolManager?.iconRotationAlignment = ICON_ROTATION_ALIGNMENT_VIEWPORT
-            style.addImage("666", IconFactory.getInstance(this).defaultMarker().bitmap)
-        }
-    }
-
-    private fun getRoute(origin: Point, destination: Point){
-        Mapbox.getAccessToken()?.let {
-            NavigationRoute.builder(this)
-                .accessToken(it)
-                .origin(origin)
-                .destination(destination)
-                .build()
-                .getRoute(object:Callback<DirectionsResponse>{
-                    @SuppressLint("LogNotTimber")
-                    override fun onResponse(
-                        call: Call<DirectionsResponse>,
-                        response: Response<DirectionsResponse>
-                    ) {
-                        val body = response.body() ?:return
-
-                        if (body.routes().count() == 0){
-                            Log.e("MapNavigationActivity","No route found.")
-                            return
-                        }
-                        if (navigationMapRoute != null){
-                            navigationMapRoute?.updateRouteVisibilityTo(false)
-                            navigationMapRoute?.updateRouteArrowVisibilityTo(false)
-                        }else{
-                            navigationMapRoute = mapView?.let { it1 ->
-                                map?.let { it2 ->
-                                    NavigationMapRoute(mapboxNavigation,
-                                        it1, it2
-                                    )
-                                }
-                            }
-                            navigationMapRoute?.updateRouteVisibilityTo(true)
-                            navigationMapRoute?.updateRouteArrowVisibilityTo(true)
-                        }
-                        route = body.routes().first()
-                        navigationMapRoute?.addRoute(body.routes().first())
-//                        mapboxNavigation?.startNavigation(body.routes().first())
-//                        val mapboxNavigation = navigationMapRoute.get_mapboxNavigation
-//                        mapboxNavigation.addProgressChangeListener()
-//                        navigationMapRoute?.addProgressChangeListener()
-                    }
-
-                    @SuppressLint("LogNotTimber")
-                    override fun onFailure(call: Call<DirectionsResponse>, t: Throwable) {
-                        Log.e("MapNavigationActivity","Error: ${t.message}")
-                    }
-
-
-                })
-        }
-    }
-
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,

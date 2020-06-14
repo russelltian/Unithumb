@@ -13,7 +13,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        SocketInstance.setup(address = "192.168.0.29", port = 8000)
+        SocketInstance.setup(address = "192.168.0.27", port = 8000)
     }
 
     fun switchToNavigationPage(view: View) {
