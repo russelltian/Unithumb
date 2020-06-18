@@ -53,5 +53,6 @@ dependencies {
     api 'com.tonystark.android:socket-server:4.2.3'//you can specify version
     implementation 'com.mapbox.mapboxsdk:mapbox-android-sdk:9.2.0'
     implementation 'com.mapbox.mapboxsdk:mapbox-android-navigation-ui:0.42.6'
-//    implementation 'com.mapbox.mapboxsdk:mapbox-android-plugin-annotation-v9:0.8.0'
+    implementation 'com.mapbox.mapboxsdk:mapbox-android-plugin-places-v9:0.12.0'
+//   implementation 'com.mapbox.mapboxsdk:mapbox-android-plugin-annotation-v9:0.8.0'
 }
