@@ -13,7 +13,6 @@ import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.Toast
-import androidx.annotation.NonNull
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.mapbox.android.core.permissions.PermissionsListener
@@ -44,7 +43,6 @@ import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions
 import com.mapbox.mapboxsdk.plugins.places.autocomplete.PlaceAutocomplete
 import com.mapbox.mapboxsdk.plugins.places.autocomplete.model.PlaceOptions
 import com.mapbox.mapboxsdk.style.layers.Property.ICON_ROTATION_ALIGNMENT_VIEWPORT
-import com.mapbox.mapboxsdk.style.layers.SymbolLayer
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
 import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute
 import com.mapbox.services.android.navigation.v5.location.replay.ReplayRouteLocationEngine
@@ -101,7 +99,6 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                 } }?.let { getRoute(it, globalDestination!!) }
             }
         }
-
         mapView = findViewById(R.id.mapView)
         mapView?.onCreate(savedInstanceState)
         mapView?.getMapAsync(this)
@@ -177,9 +174,9 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 
     private fun initSearchFab() {
         findViewById<View>(R.id.fab_location_search).setOnClickListener {
-            val intent: Intent = ( getString(
+            val intent: Intent = (getString(
                 R.string.mapbox_access_token
-            )?.let { it1 ->
+            ).let { it1 ->
                 PlaceAutocomplete.IntentBuilder()
                     .accessToken(
                         it1
@@ -202,7 +199,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                 .accessToken(it)
                 .origin(origin)
                 .destination(destination)
-                .profile(DirectionsCriteria.PROFILE_WALKING)
+                //.profile(DirectionsCriteria.PROFILE_WALKING)
                 .build()
                 .getRoute(object:Callback<DirectionsResponse>{
                     @SuppressLint("LogNotTimber")
@@ -306,34 +303,25 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 
     @SuppressLint("LogNotTimber")
     override fun onProgressChange(location: Location?, routeProgress: RouteProgress?) {
-        if (routeProgress != null) {
-            val rawMsg = routeProgress.currentLegProgress().upComingStep()?.geometry()
-            if (rawMsg!=null) {
-                val msg = PolylineUtils.decode(rawMsg, 5)
+        if (routeProgress != null && location != null) {
+            //val rawMsg = routeProgress.currentLegProgress().currentStep().geometry()
+            val msg = routeProgress.currentStepPoints()
+            if (msg!=null) {
+                //val msg = PolylineUtils.decode(rawMsg, 5)
                 Log.i(
-                    "onProgressChange",
+                    "OnProgressChange",
                     msg.size.toString() +" " + msg.toString()
+                    //routeProgress.currentStepPoints().toString()
                 )
-                val origin =
-                    map?.locationComponent?.lastKnownLocation?.longitude?.let {
-                        map?.locationComponent?.lastKnownLocation?.latitude?.let { it1 ->
-                            Point.fromLngLat(
-                                it,
-                                it1
-                            )
-                        }
-                    }
-                val segment = Point.fromLngLat(msg[0].longitude()/10, msg[0].latitude()/10)
+
+                val origin = location.longitude.let { Point.fromLngLat(it,location.latitude) }
+                val segment = Point.fromLngLat(msg[msg.size-1].longitude(), msg[msg.size-1].latitude())
                 symbolManager?.create(SymbolOptions()
                     .withLatLng(LatLng(segment.latitude(),segment.longitude()))
                     .withIconImage("666")
                     .withIconSize(0.4f)
                 )
-                symbolManager?.create(SymbolOptions()
-                    .withLatLng(LatLng(msg[0].latitude()/10,msg[0].longitude()/10))
-                    .withIconImage("666")
-                    .withIconSize(0.4f)
-                )
+
                 val bearingX = cos(segment.latitude())* sin(segment.longitude()- (origin?.longitude())!!)
                 val bearingY = cos(origin.latitude())*sin(segment.latitude()) -
                         sin(origin.latitude())*cos(segment.latitude())*cos(segment.longitude()-origin.longitude())
@@ -341,7 +329,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                 val format = DecimalFormat("#.##")
                 val sendDegree = format.format(bearing)
                 Log.i("OnProgressChange", sendDegree)
-                SocketInstance.sendMessage(sendDegree.toString())
+               // SocketInstance.sendMessage(sendDegree.toString())
             }
         }
     }
