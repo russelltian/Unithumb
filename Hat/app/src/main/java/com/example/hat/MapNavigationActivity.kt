@@ -17,14 +17,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
-import com.mapbox.api.directions.v5.DirectionsCriteria
-import com.mapbox.api.directions.v5.models.DirectionsResponse
-import com.mapbox.api.directions.v5.models.DirectionsRoute
 import com.mapbox.api.geocoding.v5.models.CarmenFeature
 import com.mapbox.geojson.Feature
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.geojson.Point
-import com.mapbox.geojson.utils.PolylineUtils
 import com.mapbox.mapboxsdk.Mapbox
 import com.mapbox.mapboxsdk.annotations.IconFactory
 import com.mapbox.mapboxsdk.camera.CameraPosition
@@ -47,12 +43,8 @@ import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
 import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute
 import com.mapbox.services.android.navigation.v5.location.replay.ReplayRouteLocationEngine
 import com.mapbox.services.android.navigation.v5.navigation.MapboxNavigation
-import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute
 import com.mapbox.services.android.navigation.v5.routeprogress.ProgressChangeListener
 import com.mapbox.services.android.navigation.v5.routeprogress.RouteProgress
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.lang.StrictMath.*
 import java.text.DecimalFormat
 
@@ -66,7 +58,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 
     //navigation
     private var navigationMapRoute: NavigationMapRoute? = null
-    private var route: DirectionsRoute ?= null
+//    private var route: DirectionsRoute ?= null
     private var globalDestination: Point ?= null
     //annotation
     private var symbolManager:SymbolManager?=null
@@ -74,6 +66,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 
     private var mapboxNavigation:MapboxNavigation ?=null
     private val locationEngine = ReplayRouteLocationEngine()
+    private val routeManager = RouteManager(this)
 
 
     //location
@@ -96,17 +89,20 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                     Point.fromLngLat(it,
                         it1
                     )
-                } }?.let { getRoute(it, globalDestination!!) }
+                } }?.let {
+                    routeManager.getRoute(it, globalDestination!!, mapboxNavigation!!)
+                    displayRoute()
+                }
             }
         }
         mapView = findViewById(R.id.mapView)
         mapView?.onCreate(savedInstanceState)
         mapView?.getMapAsync(this)
         this.findViewById<Button>(R.id.start_navigating).setOnClickListener{
-            if (route == null){
+            if (routeManager.route == null){
                 return@setOnClickListener
             }
-            locationEngine.assign(route)
+            locationEngine.assign(routeManager.route)
             mapboxNavigation?.locationEngine = locationEngine
             if (ActivityCompat.checkSelfPermission(
                     this,
@@ -137,6 +133,8 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 
     override fun onMapReady(mapboxMap: MapboxMap) {
         this.map = mapboxMap
+
+
         mapboxMap.addOnMapLongClickListener{click->
             val origin =
                 map?.locationComponent?.lastKnownLocation?.longitude?.let { map?.locationComponent?.lastKnownLocation?.latitude?.let { it1 ->
@@ -147,7 +145,8 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
             val destination: Point =
                 Point.fromLngLat(click.longitude,click.latitude)
             globalDestination = destination
-            origin?.let { getRoute(it, globalDestination!!) }
+            origin?.let { routeManager.getRoute(it, globalDestination!!,mapboxNavigation!!) }
+            displayRoute()
             symbolManager?.deleteAll()
             symbolManager?.create(
                 SymbolOptions()
@@ -193,57 +192,57 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         }
     }
 
-    private fun getRoute(origin: Point, destination: Point){
-        Mapbox.getAccessToken()?.let {
-            NavigationRoute.builder(this)
-                .accessToken(it)
-                .origin(origin)
-                .destination(destination)
-                //.profile(DirectionsCriteria.PROFILE_WALKING)
-                .build()
-                .getRoute(object:Callback<DirectionsResponse>{
-                    @SuppressLint("LogNotTimber")
-                    override fun onResponse(
-                        call: Call<DirectionsResponse>,
-                        response: Response<DirectionsResponse>
-                    ) {
-                        val body = response.body() ?:return
-
-                        if (body.routes().count() == 0){
-                            Log.e("MapNavigationActivity","No route found.")
-                            return
-                        }
-                        if (navigationMapRoute != null){
-                            navigationMapRoute?.updateRouteVisibilityTo(false)
-                            navigationMapRoute?.updateRouteArrowVisibilityTo(false)
-                        }else{
-                            navigationMapRoute = mapView?.let { it1 ->
-                                map?.let { it2 ->
-                                    NavigationMapRoute(mapboxNavigation,
-                                        it1, it2
-                                    )
-                                }
-                            }
-                            navigationMapRoute?.updateRouteVisibilityTo(true)
-                            navigationMapRoute?.updateRouteArrowVisibilityTo(true)
-                        }
-                        route = body.routes().first()
-                        navigationMapRoute?.addRoute(body.routes().first())
-                        mapboxNavigation?.startNavigation(body.routes().first())
-//                        val mapboxNavigation = navigationMapRoute.get_mapboxNavigation
-//                        mapboxNavigation.addProgressChangeListener()
-//                        navigationMapRoute?.addProgressChangeListener()
-                    }
-
-                    @SuppressLint("LogNotTimber")
-                    override fun onFailure(call: Call<DirectionsResponse>, t: Throwable) {
-                        Log.e("MapNavigationActivity","Error: ${t.message}")
-                    }
-
-
-                })
-        }
-    }
+//    private fun getRoute(origin: Point, destination: Point){
+//        Mapbox.getAccessToken()?.let {
+//            NavigationRoute.builder(this)
+//                .accessToken(it)
+//                .origin(origin)
+//                .destination(destination)
+//                //.profile(DirectionsCriteria.PROFILE_WALKING)
+//                .build()
+//                .getRoute(object:Callback<DirectionsResponse>{
+//                    @SuppressLint("LogNotTimber")
+//                    override fun onResponse(
+//                        call: Call<DirectionsResponse>,
+//                        response: Response<DirectionsResponse>
+//                    ) {
+//                        val body = response.body() ?:return
+//
+//                        if (body.routes().count() == 0){
+//                            Log.e("MapNavigationActivity","No route found.")
+//                            return
+//                        }
+//                        if (navigationMapRoute != null){
+//                            navigationMapRoute?.updateRouteVisibilityTo(false)
+//                            navigationMapRoute?.updateRouteArrowVisibilityTo(false)
+//                        }else{
+//                            navigationMapRoute = mapView?.let { it1 ->
+//                                map?.let { it2 ->
+//                                    NavigationMapRoute(mapboxNavigation,
+//                                        it1, it2
+//                                    )
+//                                }
+//                            }
+//                            navigationMapRoute?.updateRouteVisibilityTo(true)
+//                            navigationMapRoute?.updateRouteArrowVisibilityTo(true)
+//                        }
+//                        route = body.routes().first()
+//                        navigationMapRoute?.addRoute(body.routes().first())
+//
+////                        val mapboxNavigation = navigationMapRoute.get_mapboxNavigation
+////                        mapboxNavigation.addProgressChangeListener()
+////                        navigationMapRoute?.addProgressChangeListener()
+//                    }
+//
+//                    @SuppressLint("LogNotTimber")
+//                    override fun onFailure(call: Call<DirectionsResponse>, t: Throwable) {
+//                        Log.e("MapNavigationActivity","Error: ${t.message}")
+//                    }
+//
+//
+//                })
+//        }
+//    }
 
     @SuppressLint("MissingPermission")
     private fun enableLocationComponent(loadedMapStyle: Style) {
@@ -303,35 +302,26 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 
     @SuppressLint("LogNotTimber")
     override fun onProgressChange(location: Location?, routeProgress: RouteProgress?) {
-        if (routeProgress != null && location != null) {
-            //val rawMsg = routeProgress.currentLegProgress().currentStep().geometry()
-            val msg = routeProgress.currentStepPoints()
-            if (msg!=null) {
-                //val msg = PolylineUtils.decode(rawMsg, 5)
-                Log.i(
-                    "OnProgressChange",
-                    msg.size.toString() +" " + msg.toString()
-                    //routeProgress.currentStepPoints().toString()
-                )
 
-                val origin = location.longitude.let { Point.fromLngLat(it,location.latitude) }
-                val segment = Point.fromLngLat(msg[msg.size-1].longitude(), msg[msg.size-1].latitude())
+        if(routeManager?.route != null && routeProgress != null && location != null){
+            val nextPoint: Point? = routeManager.getNextPoint()
+            val origin = location.longitude.let { Point.fromLngLat(it,location.latitude) }
+            if (nextPoint != null) {
                 symbolManager?.create(SymbolOptions()
-                    .withLatLng(LatLng(segment.latitude(),segment.longitude()))
+                    .withLatLng(LatLng(nextPoint.latitude(),nextPoint.longitude()))
                     .withIconImage("666")
                     .withIconSize(0.4f)
                 )
-
-                val bearingX = cos(segment.latitude())* sin(segment.longitude()- (origin?.longitude())!!)
-                val bearingY = cos(origin.latitude())*sin(segment.latitude()) -
-                        sin(origin.latitude())*cos(segment.latitude())*cos(segment.longitude()-origin.longitude())
+                val bearingX = cos(nextPoint.latitude())* sin(nextPoint.longitude()- (origin?.longitude())!!)
+                val bearingY = cos(origin.latitude())*sin(nextPoint.latitude()) -
+                        sin(origin.latitude())*cos(nextPoint.latitude())*cos(nextPoint.longitude()-origin.longitude())
                 val bearing = atan2(bearingX,bearingY) * 180 / Math.PI
                 val format = DecimalFormat("#.##")
                 val sendDegree = format.format(bearing)
                 Log.i("OnProgressChange", sendDegree)
-               // SocketInstance.sendMessage(sendDegree.toString())
             }
         }
+
     }
 
     override fun onActivityResult(
@@ -385,11 +375,23 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                             )
                         } }
                     globalDestination = selectedCarmenFeature.geometry() as Point
-                    origin?.let { getRoute(it, globalDestination!!) }
-
+                    origin?.let { routeManager.getRoute(it, globalDestination!!,mapboxNavigation!!)}
+                    displayRoute()
                 }
             }
         }
+    }
+
+    private fun displayRoute(){
+//        navigationMapRoute = mapView?.let { it1 ->
+//            map?.let { it2 ->
+//                NavigationMapRoute(mapboxNavigation,
+//                    it1, it2
+//                )
+//            }
+//        }
+//        navigationMapRoute?.updateRouteVisibilityTo(true)
+//        navigationMapRoute?.updateRouteArrowVisibilityTo(true)
     }
 
     override fun onStart(){
