@@ -83,18 +83,17 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         // This contains the MapView in XML and needs to be called after getting access token
         setContentView(R.layout.activity_map_navigation)
 
-        mapboxNavigation!!.addOffRouteListener{
-            if (globalDestination != null){
-                map?.locationComponent?.lastKnownLocation?.longitude?.let { map?.locationComponent?.lastKnownLocation?.latitude?.let { it1 ->
-                    Point.fromLngLat(it,
-                        it1
-                    )
-                } }?.let {
-                    routeManager.getRoute(it, globalDestination!!, mapboxNavigation!!)
-                    displayRoute()
-                }
-            }
-        }
+//        mapboxNavigation!!.addOffRouteListener{
+//            if (globalDestination != null){
+//                map?.locationComponent?.lastKnownLocation?.longitude?.let { map?.locationComponent?.lastKnownLocation?.latitude?.let { it1 ->
+//                    Point.fromLngLat(it,
+//                        it1
+//                    )
+//                } }?.let {
+//                    routeManager.getRoute(it, globalDestination!!)
+//                }
+//            }
+//        }
         mapView = findViewById(R.id.mapView)
         mapView?.onCreate(savedInstanceState)
         mapView?.getMapAsync(this)
@@ -145,8 +144,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
             val destination: Point =
                 Point.fromLngLat(click.longitude,click.latitude)
             globalDestination = destination
-            origin?.let { routeManager.getRoute(it, globalDestination!!,mapboxNavigation!!) }
-            displayRoute()
+            origin?.let { routeManager.getRoute(it, globalDestination!!) }
             symbolManager?.deleteAll()
             symbolManager?.create(
                 SymbolOptions()
@@ -304,13 +302,15 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     override fun onProgressChange(location: Location?, routeProgress: RouteProgress?) {
 
         if(routeManager?.route != null && routeProgress != null && location != null){
-            val nextPoint: Point? = routeManager.getNextPoint()
+
             val origin = location.longitude.let { Point.fromLngLat(it,location.latitude) }
+
+            val nextPoint: Point? = routeManager.getNextPoint(origin)
             if (nextPoint != null) {
                 symbolManager?.create(SymbolOptions()
                     .withLatLng(LatLng(nextPoint.latitude(),nextPoint.longitude()))
                     .withIconImage("666")
-                    .withIconSize(0.4f)
+                    .withIconSize(4.0f)
                 )
                 val bearingX = cos(nextPoint.latitude())* sin(nextPoint.longitude()- (origin?.longitude())!!)
                 val bearingY = cos(origin.latitude())*sin(nextPoint.latitude()) -
@@ -375,23 +375,30 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                             )
                         } }
                     globalDestination = selectedCarmenFeature.geometry() as Point
-                    origin?.let { routeManager.getRoute(it, globalDestination!!,mapboxNavigation!!)}
-                    displayRoute()
+                    origin?.let { routeManager.getRoute(it, globalDestination!!)}
                 }
             }
         }
     }
 
-    private fun displayRoute(){
-//        navigationMapRoute = mapView?.let { it1 ->
-//            map?.let { it2 ->
-//                NavigationMapRoute(mapboxNavigation,
-//                    it1, it2
-//                )
-//            }
-//        }
-//        navigationMapRoute?.updateRouteVisibilityTo(true)
-//        navigationMapRoute?.updateRouteArrowVisibilityTo(true)
+    fun displayRoute(){
+        routeManager.route?.let { mapboxNavigation?.startNavigation(it) }
+
+        if(navigationMapRoute == null){
+            navigationMapRoute = mapView?.let { it1 ->
+                map?.let { it2 ->
+                    NavigationMapRoute(mapboxNavigation,
+                        it1, it2
+                    )
+                }
+            }
+
+        }else{
+            navigationMapRoute?.updateRouteVisibilityTo(false)
+            navigationMapRoute?.updateRouteArrowVisibilityTo(false)
+            navigationMapRoute?.addRoute(routeManager.route)
+        }
+
     }
 
     override fun onStart(){

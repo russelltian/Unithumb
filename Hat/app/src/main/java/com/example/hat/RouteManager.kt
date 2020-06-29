@@ -1,28 +1,27 @@
 package com.example.hat
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.util.Log
 import com.mapbox.api.directions.v5.models.DirectionsResponse
 import com.mapbox.api.directions.v5.models.DirectionsRoute
 import com.mapbox.geojson.Point
 import com.mapbox.geojson.utils.PolylineUtils
 import com.mapbox.mapboxsdk.Mapbox
-import com.mapbox.services.android.navigation.v5.navigation.MapboxNavigation
 import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute
+import com.mapbox.turf.TurfMeasurement
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.util.*
 
 
-class RouteManager(context: Context) {
+class RouteManager(context: MapNavigationActivity) {
     private val ctx = context
-    public var route: DirectionsRoute?= null
+    var route: DirectionsRoute?= null
     private var geometry: Queue<Point>?=null
     private var nextPoint: Point ?= null
 
-    fun getNextPoint(): Point? {
+    fun getNextPoint(curr:Point): Point? {
         if(nextPoint==null){
             if(geometry==null){
                 Log.e("route manager","empty geometry")
@@ -30,9 +29,17 @@ class RouteManager(context: Context) {
                 nextPoint = geometry!!.poll()
             }
         }else{
-            if(!geometry?.isEmpty()!!){
-                nextPoint = geometry!!.poll()
+            val last = nextPoint?.latitude()?.div(10)?.let { Point.fromLngLat(
+                nextPoint?.longitude()?.div(10)!!,it)
             }
+            val distance = TurfMeasurement.distance(curr,last!!)
+            Log.i("distance:",distance.toString())
+            if(distance <0.1){
+                if(!geometry?.isEmpty()!!){
+                    nextPoint = geometry!!.poll()
+                }
+            }
+
         }
         val ret = nextPoint?.latitude()?.div(10)?.let { Point.fromLngLat(
             nextPoint?.longitude()?.div(10)!!,it)
@@ -41,8 +48,7 @@ class RouteManager(context: Context) {
         return ret
     }
 
-    fun getRoute(origin: Point, destination: Point,
-                 mapboxNavigation: MapboxNavigation){
+    fun getRoute(origin: Point, destination: Point){
         Mapbox.getAccessToken()?.let {
             NavigationRoute.builder(ctx)
                 .accessToken(it)
@@ -68,8 +74,9 @@ class RouteManager(context: Context) {
                             geometry = LinkedList<Point>(waypoints)
                             nextPoint = null
                         }
+                        ctx.displayRoute()
 
-                        route?.let { mapboxNavigation?.startNavigation(it) }
+
                     }
 
 
