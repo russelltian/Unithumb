@@ -74,8 +74,8 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 //    private var destination:Point?= null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         // Map access token is configured here.
+        // TODO: the mapbox access token should be stored on a file for all copy of the program
         Mapbox.getInstance(this, getString(R.string.mapbox_access_token))
 
         mapboxNavigation = MapboxNavigation(this, getString(R.string.mapbox_access_token))
@@ -83,20 +83,25 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         // This contains the MapView in XML and needs to be called after getting access token
         setContentView(R.layout.activity_map_navigation)
 
-//        mapboxNavigation!!.addOffRouteListener{
-//            if (globalDestination != null){
-//                map?.locationComponent?.lastKnownLocation?.longitude?.let { map?.locationComponent?.lastKnownLocation?.latitude?.let { it1 ->
-//                    Point.fromLngLat(it,
-//                        it1
-//                    )
-//                } }?.let {
-//                    routeManager.getRoute(it, globalDestination!!)
-//                }
-//            }
-//        }
+        // Deal with off route situation, reroute the path
+        mapboxNavigation!!.addOffRouteListener{
+            if (globalDestination != null){
+                symbolManager?.deleteAll()
+                map?.locationComponent?.lastKnownLocation?.longitude?.let { map?.locationComponent?.lastKnownLocation?.latitude?.let { it1 ->
+                    Point.fromLngLat(it,
+                        it1
+                    )
+                } }?.let {
+                    routeManager.getRoute(it, globalDestination!!)
+                }
+            }
+        }
+        // Create view on the app and set it up in "onMapReady"
         mapView = findViewById(R.id.mapView)
         mapView?.onCreate(savedInstanceState)
         mapView?.getMapAsync(this)
+
+        // TODO not sure if we keep this or not
         this.findViewById<Button>(R.id.start_navigating).setOnClickListener{
             if (routeManager.route == null){
                 return@setOnClickListener
@@ -133,7 +138,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     override fun onMapReady(mapboxMap: MapboxMap) {
         this.map = mapboxMap
 
-
+        // By long click the map, we get a new route
         mapboxMap.addOnMapLongClickListener{click->
             val origin =
                 map?.locationComponent?.lastKnownLocation?.longitude?.let { map?.locationComponent?.lastKnownLocation?.latitude?.let { it1 ->
@@ -146,19 +151,20 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
             globalDestination = destination
             origin?.let { routeManager.getRoute(it, globalDestination!!) }
             symbolManager?.deleteAll()
+            // TODO: fix icon name with proper lib
             symbolManager?.create(
                 SymbolOptions()
                     .withLatLng(LatLng(click.latitude,click.longitude))
                     .withIconImage("666")
                     .withIconSize(2.0f)
             )
+            // the other trigger will not be skipped
             false
         }
         mapboxMap.setStyle(Style.MAPBOX_STREETS) {style->
             initSearchFab()
-            // Madp is set up and the style has loaded. Now you can add data or make other map adjustments
+            // Map is set up and the style has been loaded.
             enableLocationComponent(style)
-            //symbolManager = mapView?.let { SymbolManager(it,mapboxMap,style) }
             symbolManager = mapView?.let { SymbolManager(it,mapboxMap, style) }
             // set non-data-driven properties, such as:
             symbolManager?.iconAllowOverlap = true
@@ -169,6 +175,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         }
     }
 
+    // A searching bar on the map for destination searching
     private fun initSearchFab() {
         findViewById<View>(R.id.fab_location_search).setOnClickListener {
             val intent: Intent = (getString(
@@ -276,17 +283,11 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
             permissionsManager.requestLocationPermissions(this)
         }
     }
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-    }
+
     // When the user deny the permission for the first time
     override fun onExplanationNeeded(permissionsToExplain: MutableList<String>?) {
         // Present a toast or a dialog explaining why they need to grant permission
-        Toast.makeText(this,"Meow", Toast.LENGTH_LONG).show()
+        Toast.makeText(this,"The location request has been declined by the user", Toast.LENGTH_LONG).show()
     }
 
     override fun onPermissionResult(granted: Boolean) {
@@ -300,8 +301,8 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 
     @SuppressLint("LogNotTimber")
     override fun onProgressChange(location: Location?, routeProgress: RouteProgress?) {
-
-        if(routeManager?.route != null && routeProgress != null && location != null){
+        Log.i("route progress", routeProgress?.currentState().toString())
+        if(routeManager.route != null && routeProgress != null && location != null){
 
             val origin = location.longitude.let { Point.fromLngLat(it,location.latitude) }
 
@@ -310,7 +311,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                 symbolManager?.create(SymbolOptions()
                     .withLatLng(LatLng(nextPoint.latitude(),nextPoint.longitude()))
                     .withIconImage("666")
-                    .withIconSize(4.0f)
+                    .withIconSize(0.8f)
                 )
                 val bearingX = cos(nextPoint.latitude())* sin(nextPoint.longitude()- (origin?.longitude())!!)
                 val bearingY = cos(origin.latitude())*sin(nextPoint.latitude()) -
@@ -319,6 +320,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                 val format = DecimalFormat("#.##")
                 val sendDegree = format.format(bearing)
                 Log.i("OnProgressChange", sendDegree)
+                SocketInstance.sendMessage(sendDegree)
             }
         }
 
@@ -338,20 +340,17 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 // Create a new FeatureCollection and add a new Feature to it using selectedCarmenFeature above.
 // Then retrieve and update the source designated for showing a selected location's symbol layer icon
             if (map != null) {
-                val style: Style? = map!!.getStyle()
+                val style: Style? = map!!.style
                 if (style != null) {
-                    val source: GeoJsonSource? = style.getSourceAs("geojsonSourceLayerId")
-                    if (source != null) {
-                        source.setGeoJson(
-                            FeatureCollection.fromFeatures(
-                                arrayOf<Feature>(
-                                    Feature.fromJson(
-                                        selectedCarmenFeature.toJson()
-                                    )
+                    style.getSourceAs<GeoJsonSource?>("geojsonSourceLayerId")?.setGeoJson(
+                        FeatureCollection.fromFeatures(
+                            arrayOf<Feature>(
+                                Feature.fromJson(
+                                    selectedCarmenFeature.toJson()
                                 )
                             )
                         )
-                    }
+                    )
 
 // Move map camera to the selected location
                     map!!.animateCamera(
@@ -433,4 +432,27 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         mapView?.onLowMemory()
     }
 
+    fun calcBearing(origin: Point,nextPoint: Point): String {
+        val bearingX = cos(nextPoint.latitude()*Math.PI/180)* sin(((nextPoint.longitude()- origin?.longitude())
+                *Math.PI/180)!!)
+        val bearingY = cos(origin.latitude()*Math.PI/180)*sin(nextPoint.latitude()*Math.PI/180) -
+                sin(origin.latitude()*Math.PI/180)*cos(nextPoint.latitude()*Math.PI/180)*
+                cos((nextPoint.longitude()-origin.longitude())*Math.PI/180)
+      //  Log.i("fuccccck", nextPoint.latitude().toString())
+      //  Log.i("fuccccck", (nextPoint.longitude()- (origin?.longitude())).toString())
+       // Log.i("fuccccck", (bearingY).toString())//bearingX.toString())
+        val bearing = atan2(bearingX,bearingY) * 180 / Math.PI
+        val format = DecimalFormat("#.##")
+        val sendDegree = format.format(bearing)
+        //Log.i("fuccccck",sendDegree)
+        return sendDegree
+    }
+
+    fun testBearing(){
+        //Log.i("fuccccck",)
+        calcBearing(Point.fromLngLat( -94.581213,39.099912),
+            Point.fromLngLat( -90.200203,38.627089))
+        print("hahah")
+    }
 }
+
