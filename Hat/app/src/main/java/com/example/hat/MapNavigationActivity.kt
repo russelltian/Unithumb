@@ -65,7 +65,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 
 
     private var mapboxNavigation:MapboxNavigation ?=null
-    private val locationEngine = ReplayRouteLocationEngine()
+//    private val locationEngine = ReplayRouteLocationEngine()
     private val routeManager = RouteManager(this)
 
 
@@ -106,8 +106,8 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
             if (routeManager.route == null){
                 return@setOnClickListener
             }
-            locationEngine.assign(routeManager.route)
-            mapboxNavigation?.locationEngine = locationEngine
+//            locationEngine.assign(routeManager.route)
+//            mapboxNavigation?.locationEngine = locationEngine
             if (ActivityCompat.checkSelfPermission(
                     this,
                     Manifest.permission.ACCESS_FINE_LOCATION
