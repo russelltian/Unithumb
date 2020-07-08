@@ -6,9 +6,25 @@
     <string name="second_fragment_label">Second Fragment</string>
     <string name="next">Next</string>
     <string name="previous">Previous</string>
-
+    <!-- Personal -->
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
     <string name="right">Right</string>
     <string name="left">Left</string>
+    <string name="mapbox_access_token">pk.eyJ1IjoicnVzc2VsdCIsImEiOiJjamw0bjlnY2YwMHhwM3Fxcmk3am5ycHhxIn0.ND7Xfzhg1o94YnWWSyPhRQ</string>
+    <string name="navigationhat">NavigationHat</string>
+    <string name="connect_device">Connect Device</string>
+    <string name="showmap">showmap</string>
+    <string name="getmap">getmap</string>
+    <string name="title_activity_map_navigation">MapNavigationActivity</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+
+    <string name="menu_home">Home</string>
+    <string name="menu_gallery">Gallery</string>
+    <string name="menu_slideshow">Slideshow</string>
+    <string name="start_navigating">Start Navigating</string>
 </resources>
