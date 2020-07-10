@@ -76,7 +76,6 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     private var deviceInterface: SimpleBluetoothDeviceInterface? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         // Map access token is configured here.
         // TODO: the mapbox access token should be stored on a file for all copy of the program
         Mapbox.getInstance(this, getString(R.string.mapbox_access_token))
@@ -141,7 +140,6 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 
     override fun onMapReady(mapboxMap: MapboxMap) {
         this.map = mapboxMap
-
         // By long click the map, we get a new route
         mapboxMap.addOnMapLongClickListener{click->
             val origin =
@@ -221,7 +219,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
             bluetoothManager!!.openSerialDevice(macaddress)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(this::onConnected, this::onError);
+                .subscribe(this::onConnected, this::onError)
         }
     }
     @SuppressLint("MissingPermission")
@@ -288,12 +286,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                     .withIconImage("666")
                     .withIconSize(0.8f)
                 )
-                val bearingX = cos(nextPoint.latitude())* sin(nextPoint.longitude()- (origin?.longitude())!!)
-                val bearingY = cos(origin.latitude())*sin(nextPoint.latitude()) -
-                        sin(origin.latitude())*cos(nextPoint.latitude())*cos(nextPoint.longitude()-origin.longitude())
-                val bearing = atan2(bearingX,bearingY) * 180 / Math.PI
-                val format = DecimalFormat("#.##")
-                val sendDegree = format.format(bearing)
+                val sendDegree = calcBearing(origin, nextPoint)
                 Log.i("OnProgressChange", sendDegree)
                 // Send message to device connected
                 deviceInterface!!.sendMessage(sendDegree)
@@ -420,17 +413,16 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                 cos((nextPoint.longitude()-origin.longitude())*Math.PI/180)
         val bearing = atan2(bearingX,bearingY) * 180 / Math.PI
         val format = DecimalFormat("#.##")
-        val sendDegree = format.format(bearing)
-        return sendDegree
+        return format.format(bearing)
     }
 
-    fun testBearing(){
-        calcBearing(Point.fromLngLat( -94.581213,39.099912),
-            Point.fromLngLat( -90.200203,38.627089))
-    }
+//    fun testBearing(){
+//        calcBearing(Point.fromLngLat( -94.581213,39.099912),
+//            Point.fromLngLat( -90.200203,38.627089))
+//    }
 
     // --------------------------- BLUETOOTH ---------------------------------------------
-    private fun onConnected(connectedDevice: BluetoothSerialDevice): Unit {
+    private fun onConnected(connectedDevice: BluetoothSerialDevice) {
         // You are now connected to this device!
         // Here you may want to retain an instance to your device:
         deviceInterface = connectedDevice.toSimpleDeviceInterface()
@@ -457,8 +449,10 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
             .show() // Replace context with your context instance.
     }
 
+    @SuppressLint("LogNotTimber")
     private fun onError(error: Throwable) {
         // Handle the error
+        Log.e("bluetooth",error.toString())
     }
 }
 
