@@ -74,8 +74,13 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 
     // Bluetooth
     private var rxBleClient:RxBleClient ?= null
-    private var device:RxBleDevice? = null // rxBleClient?.getBleDevice("2020")
+    private lateinit var device:RxBleDevice // rxBleClient?.getBleDevice("2020")
     private val mac_addr:String = "" //TODO: get device mac address
+    private var connectionDisposable: Disposable? = null
+
+    private var stateDisposable: Disposable? = null
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -208,32 +213,39 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 
     // Set up bluetooth scan
     // https://github.com/Polidea/RxAndroidBle
-    @SuppressLint("CheckResult")
+    @SuppressLint("CheckResult", "LogNotTimber")
     private fun initBlueTooth(){
+
+        val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+        val REQUEST_ENABLE_BT = 1
+        startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
+
         findViewById<View>(R.id.floatingActionButton2).setOnClickListener{
-            val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-            val REQUEST_ENABLE_BT = 1
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
-
-
-            val scanSubscription: Disposable? = rxBleClient?.scanBleDevices(
-                ScanSettings.Builder() // .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY) // change if needed
-                    // .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES) // change if needed
-                    .build() // add filters if needed
-            )
-                ?.subscribe(
-                    { scanResult ->
-                    },
-                    { throwable -> }
-                )
-
-            device = rxBleClient?.getBleDevice(mac_addr)
-            val disposable = device!!.establishConnection(false) // <-- autoConnect flag
+//            val scanSubscription: Disposable? = rxBleClient?.scanBleDevices(
+//                ScanSettings.Builder() // .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY) // change if needed
+//                    // .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES) // change if needed
+//                    .build() // add filters if needed
+//            )
+//                ?.subscribe(
+//                    { scanResult ->
+//                    },
+//                    { throwable -> }
+//                )
+            device = rxBleClient?.getBleDevice(mac_addr)!!
+//            device.observeConnectionStateChanges()
+//                .subscribe { onConnectionStateChange(it) }
+//                .let { stateDisposable = it }
+            connectionDisposable = device.establishConnection(false) // <-- autoConnect flag
                 .subscribe(
-                    { rxBleConnection: RxBleConnection? -> }
-                ) { throwable: Throwable? -> }
+                    { rxBleConnection: RxBleConnection? -> Log.i("bluetooth","Connection received")}
+                ) { throwable: Throwable? -> Log.i("bluetooth","Connection error: $throwable")}
             // When done, just dispose.
-            scanSubscription?.dispose()
+            //scanSubscription?.dispose()
+
+
+            // Connect, disconnect
+            connectionDisposable = null
+
         }
     }
     @SuppressLint("MissingPermission")
@@ -407,6 +419,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     }
     override fun onPause(){
         super.onPause()
+        connectionDisposable?.dispose()
         mapView?.onPause()
     }
     override fun onStop(){
@@ -446,6 +459,11 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     fun testBearing(){
         calcBearing(Point.fromLngLat( -94.581213,39.099912),
             Point.fromLngLat( -90.200203,38.627089))
+    }
+
+    // BLUE TOOTH
+    private fun onConnectionStateChange(newState: RxBleConnection.RxBleConnectionState) {
+
     }
 }
 
