@@ -4,7 +4,9 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.bluetooth.BluetoothDevice
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.drawable.Drawable
 import android.location.Location
 import android.os.Bundle
 import android.os.PersistableBundle
@@ -12,6 +14,7 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.res.ResourcesCompat
 import com.harrysoft.androidbluetoothserial.BluetoothManager
 import com.harrysoft.androidbluetoothserial.BluetoothSerialDevice
 import com.harrysoft.androidbluetoothserial.SimpleBluetoothDeviceInterface
@@ -22,7 +25,6 @@ import com.mapbox.geojson.Feature
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.geojson.Point
 import com.mapbox.mapboxsdk.Mapbox
-import com.mapbox.mapboxsdk.annotations.IconFactory
 import com.mapbox.mapboxsdk.camera.CameraPosition
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
 import com.mapbox.mapboxsdk.geometry.LatLng
@@ -133,7 +135,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 //
 //        }
 
-
+        testBearing()
 
     }
 
@@ -173,7 +175,11 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
             symbolManager?.iconIgnorePlacement = true
             symbolManager?.iconTranslate = arrayOf(-4f, 5f)
             symbolManager?.iconRotationAlignment = ICON_ROTATION_ALIGNMENT_VIEWPORT
-            style.addImage("666", IconFactory.getInstance(this).defaultMarker().bitmap)
+            ResourcesCompat.getDrawable(resources, R.drawable.map_default_map_marker,null)?.let {
+                style.addImage("666",
+                    it
+                )
+            }
         }
     }
 
@@ -205,7 +211,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     private fun initBlueTooth(){
         bluetoothManager = BluetoothManager.getInstance()
         if (bluetoothManager == null){
-            Toast.makeText(this, "Bluetooth not available.", Toast.LENGTH_LONG).show(); // Replace
+            Toast.makeText(this, "Bluetooth not available.", Toast.LENGTH_LONG).show() // Replace
             finish()
         }
 
@@ -216,10 +222,10 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         }
 
         findViewById<View>(R.id.floatingActionButton2).setOnClickListener{
-            bluetoothManager!!.openSerialDevice(macaddress)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(this::onConnected, this::onError)
+            connectDevice(macaddress)
+        }
+        findViewById<View>(R.id.disconnect).setOnClickListener{
+            disconnect()
         }
     }
     @SuppressLint("MissingPermission")
@@ -289,8 +295,12 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                 val sendDegree = calcBearing(origin, nextPoint)
                 Log.i("OnProgressChange", sendDegree)
                 // Send message to device connected
-                deviceInterface!!.sendMessage(sendDegree)
-
+                if (deviceInterface != null){
+                    deviceInterface!!.sendMessage(sendDegree)
+                }
+                else{
+                    connectDevice(macaddress)
+                }
 
             }
         }
@@ -404,6 +414,11 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     }
 
     fun calcBearing(origin: Point,nextPoint: Point): String {
+//        val lat1 = origin.latitude() * Math.PI/180
+//        val lon1 = origin.longitude() * Math.PI/180
+//        val lat2 = nextPoint.latitude() * Math.PI/180
+//        val lon2 = nextPoint.longitude() * Math.PI/180
+//        val dLon = (lon2 - lon1) * Math.PI/180
         val bearingX = cos(nextPoint.latitude()*Math.PI/180)* sin(
             ((nextPoint.longitude() - origin.longitude())
                     * Math.PI / 180)
@@ -411,17 +426,33 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         val bearingY = cos(origin.latitude()*Math.PI/180)*sin(nextPoint.latitude()*Math.PI/180) -
                 sin(origin.latitude()*Math.PI/180)*cos(nextPoint.latitude()*Math.PI/180)*
                 cos((nextPoint.longitude()-origin.longitude())*Math.PI/180)
+//        val bearingX = cos(lat2) * sin(dLon)
+//        val bearingY = cos(lat1)*sin(lat2) - sin(lat1)*cos(lat2)*cos(dLon)
         val bearing = atan2(bearingX,bearingY) * 180 / Math.PI
+        //bearing = (360 - ((bearing+360)%360))
         val format = DecimalFormat("#.##")
         return format.format(bearing)
     }
 
-//    fun testBearing(){
-//        calcBearing(Point.fromLngLat( -94.581213,39.099912),
-//            Point.fromLngLat( -90.200203,38.627089))
-//    }
+    fun testBearing(){
+        val a = calcBearing(Point.fromLngLat( -94.581213,39.099912),
+            Point.fromLngLat( -90.200203,38.627089))
+        val b = calcBearing(Point.fromLngLat( -79.3832,43.6532),
+            Point.fromLngLat( -79.383,43.6531))
+
+        print(a)
+    }
 
     // --------------------------- BLUETOOTH ---------------------------------------------
+
+    @SuppressLint("CheckResult")
+    private fun connectDevice(mac: String) {
+        bluetoothManager!!.openSerialDevice(mac)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(this::onConnected, this::onError)
+    }
+
     private fun onConnected(connectedDevice: BluetoothSerialDevice) {
         // You are now connected to this device!
         // Here you may want to retain an instance to your device:
@@ -442,6 +473,10 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         Log.d("bluetooth", "Sent a message! Message was: $message")
 
     }
+    private fun disconnect(){
+        // Disconnect all devices
+        bluetoothManager?.close()
+    }
 
     private fun onMessageReceived(message: String) {
         // We received a message! Handle it here.
@@ -453,6 +488,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     private fun onError(error: Throwable) {
         // Handle the error
         Log.e("bluetooth",error.toString())
+        bluetoothManager?.close()
     }
 }
 
