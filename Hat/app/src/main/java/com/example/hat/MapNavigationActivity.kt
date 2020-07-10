@@ -1,20 +1,18 @@
 package com.example.hat
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothGattCharacteristic
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.util.Log
 import android.view.View
-import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.api.geocoding.v5.models.CarmenFeature
@@ -41,12 +39,18 @@ import com.mapbox.mapboxsdk.plugins.places.autocomplete.model.PlaceOptions
 import com.mapbox.mapboxsdk.style.layers.Property.ICON_ROTATION_ALIGNMENT_VIEWPORT
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
 import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute
-import com.mapbox.services.android.navigation.v5.location.replay.ReplayRouteLocationEngine
 import com.mapbox.services.android.navigation.v5.navigation.MapboxNavigation
 import com.mapbox.services.android.navigation.v5.routeprogress.ProgressChangeListener
 import com.mapbox.services.android.navigation.v5.routeprogress.RouteProgress
+import com.polidea.rxandroidble2.RxBleClient
+import com.polidea.rxandroidble2.RxBleConnection
+import com.polidea.rxandroidble2.RxBleDevice
+import com.polidea.rxandroidble2.scan.ScanSettings
+import io.reactivex.disposables.Disposable
 import java.lang.StrictMath.*
+import java.nio.ByteBuffer
 import java.text.DecimalFormat
+import java.util.*
 
 class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsListener,ProgressChangeListener
 
@@ -68,12 +72,16 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 //    private val locationEngine = ReplayRouteLocationEngine()
     private val routeManager = RouteManager(this)
 
-
-    //location
-//    private var origin:Point?= null
-//    private var destination:Point?= null
+    // Bluetooth
+    private var rxBleClient:RxBleClient ?= null
+    private var device:RxBleDevice? = null // rxBleClient?.getBleDevice("2020")
+    private val mac_addr:String = "" //TODO: get device mac address
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Bluetooth
+        rxBleClient = RxBleClient.create(this)
+
         // Map access token is configured here.
         // TODO: the mapbox access token should be stored on a file for all copy of the program
         Mapbox.getInstance(this, getString(R.string.mapbox_access_token))
@@ -102,33 +110,33 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         mapView?.getMapAsync(this)
 
         // TODO not sure if we keep this or not
-        this.findViewById<Button>(R.id.start_navigating).setOnClickListener{
-            if (routeManager.route == null){
-                return@setOnClickListener
-            }
-//            locationEngine.assign(routeManager.route)
-//            mapboxNavigation?.locationEngine = locationEngine
-            if (ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                // TODO: Consider calling
-                //    ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
-                return@setOnClickListener
-            }
-            map?.locationComponent?.isLocationComponentEnabled = true
-         //   mapboxNavigation?.startNavigation(route!!)
-
-        }
+//        this.findViewById<Button>(R.id.start_navigating).setOnClickListener{
+//            if (routeManager.route == null){
+//                return@setOnClickListener
+//            }
+////            locationEngine.assign(routeManager.route)
+////            mapboxNavigation?.locationEngine = locationEngine
+//            if (ActivityCompat.checkSelfPermission(
+//                    this,
+//                    Manifest.permission.ACCESS_FINE_LOCATION
+//                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+//                    this,
+//                    Manifest.permission.ACCESS_COARSE_LOCATION
+//                ) != PackageManager.PERMISSION_GRANTED
+//            ) {
+//                // TODO: Consider calling
+//                //    ActivityCompat#requestPermissions
+//                // here to request the missing permissions, and then overriding
+//                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+//                //                                          int[] grantResults)
+//                // to handle the case where the user grants the permission. See the documentation
+//                // for ActivityCompat#requestPermissions for more details.
+//                return@setOnClickListener
+//            }
+//            map?.locationComponent?.isLocationComponentEnabled = true
+//         //   mapboxNavigation?.startNavigation(route!!)
+//
+//        }
 
 
 
@@ -163,6 +171,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         }
         mapboxMap.setStyle(Style.MAPBOX_STREETS) {style->
             initSearchFab()
+            initBlueTooth()
             // Map is set up and the style has been loaded.
             enableLocationComponent(style)
             symbolManager = mapView?.let { SymbolManager(it,mapboxMap, style) }
@@ -197,58 +206,36 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         }
     }
 
-//    private fun getRoute(origin: Point, destination: Point){
-//        Mapbox.getAccessToken()?.let {
-//            NavigationRoute.builder(this)
-//                .accessToken(it)
-//                .origin(origin)
-//                .destination(destination)
-//                //.profile(DirectionsCriteria.PROFILE_WALKING)
-//                .build()
-//                .getRoute(object:Callback<DirectionsResponse>{
-//                    @SuppressLint("LogNotTimber")
-//                    override fun onResponse(
-//                        call: Call<DirectionsResponse>,
-//                        response: Response<DirectionsResponse>
-//                    ) {
-//                        val body = response.body() ?:return
-//
-//                        if (body.routes().count() == 0){
-//                            Log.e("MapNavigationActivity","No route found.")
-//                            return
-//                        }
-//                        if (navigationMapRoute != null){
-//                            navigationMapRoute?.updateRouteVisibilityTo(false)
-//                            navigationMapRoute?.updateRouteArrowVisibilityTo(false)
-//                        }else{
-//                            navigationMapRoute = mapView?.let { it1 ->
-//                                map?.let { it2 ->
-//                                    NavigationMapRoute(mapboxNavigation,
-//                                        it1, it2
-//                                    )
-//                                }
-//                            }
-//                            navigationMapRoute?.updateRouteVisibilityTo(true)
-//                            navigationMapRoute?.updateRouteArrowVisibilityTo(true)
-//                        }
-//                        route = body.routes().first()
-//                        navigationMapRoute?.addRoute(body.routes().first())
-//
-////                        val mapboxNavigation = navigationMapRoute.get_mapboxNavigation
-////                        mapboxNavigation.addProgressChangeListener()
-////                        navigationMapRoute?.addProgressChangeListener()
-//                    }
-//
-//                    @SuppressLint("LogNotTimber")
-//                    override fun onFailure(call: Call<DirectionsResponse>, t: Throwable) {
-//                        Log.e("MapNavigationActivity","Error: ${t.message}")
-//                    }
-//
-//
-//                })
-//        }
-//    }
+    // Set up bluetooth scan
+    // https://github.com/Polidea/RxAndroidBle
+    @SuppressLint("CheckResult")
+    private fun initBlueTooth(){
+        findViewById<View>(R.id.floatingActionButton2).setOnClickListener{
+            val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+            val REQUEST_ENABLE_BT = 1
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
 
+
+            val scanSubscription: Disposable? = rxBleClient?.scanBleDevices(
+                ScanSettings.Builder() // .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY) // change if needed
+                    // .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES) // change if needed
+                    .build() // add filters if needed
+            )
+                ?.subscribe(
+                    { scanResult ->
+                    },
+                    { throwable -> }
+                )
+
+            device = rxBleClient?.getBleDevice(mac_addr)
+            val disposable = device!!.establishConnection(false) // <-- autoConnect flag
+                .subscribe(
+                    { rxBleConnection: RxBleConnection? -> }
+                ) { throwable: Throwable? -> }
+            // When done, just dispose.
+            scanSubscription?.dispose()
+        }
+    }
     @SuppressLint("MissingPermission")
     private fun enableLocationComponent(loadedMapStyle: Style) {
         // Check if permissions are enabled and if not request
@@ -299,7 +286,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         }
     }
 
-    @SuppressLint("LogNotTimber")
+    @SuppressLint("LogNotTimber", "CheckResult")
     override fun onProgressChange(location: Location?, routeProgress: RouteProgress?) {
         Log.i("route progress", routeProgress?.currentState().toString())
         if(routeManager.route != null && routeProgress != null && location != null){
@@ -320,7 +307,17 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                 val format = DecimalFormat("#.##")
                 val sendDegree = format.format(bearing)
                 Log.i("OnProgressChange", sendDegree)
-                SocketInstance.sendMessage(sendDegree)
+                val characteristicUUID = UUID(0x01,0x01)// NEED CHANGE
+                device!!.establishConnection(false)
+                    .flatMapSingle<Any> { rxBleConnection: RxBleConnection ->
+                        rxBleConnection.writeCharacteristic(
+                            characteristicUUID,
+                            sendDegree.toByteArray()
+                        )
+                    }
+                    .subscribe(
+                        { characteristicValue: Any? -> }
+                    ) { throwable: Throwable? -> }
             }
         }
 
@@ -433,26 +430,22 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     }
 
     fun calcBearing(origin: Point,nextPoint: Point): String {
-        val bearingX = cos(nextPoint.latitude()*Math.PI/180)* sin(((nextPoint.longitude()- origin?.longitude())
-                *Math.PI/180)!!)
+        val bearingX = cos(nextPoint.latitude()*Math.PI/180)* sin(
+            ((nextPoint.longitude() - origin.longitude())
+                    * Math.PI / 180)
+        )
         val bearingY = cos(origin.latitude()*Math.PI/180)*sin(nextPoint.latitude()*Math.PI/180) -
                 sin(origin.latitude()*Math.PI/180)*cos(nextPoint.latitude()*Math.PI/180)*
                 cos((nextPoint.longitude()-origin.longitude())*Math.PI/180)
-      //  Log.i("fuccccck", nextPoint.latitude().toString())
-      //  Log.i("fuccccck", (nextPoint.longitude()- (origin?.longitude())).toString())
-       // Log.i("fuccccck", (bearingY).toString())//bearingX.toString())
         val bearing = atan2(bearingX,bearingY) * 180 / Math.PI
         val format = DecimalFormat("#.##")
         val sendDegree = format.format(bearing)
-        //Log.i("fuccccck",sendDegree)
         return sendDegree
     }
 
     fun testBearing(){
-        //Log.i("fuccccck",)
         calcBearing(Point.fromLngLat( -94.581213,39.099912),
             Point.fromLngLat( -90.200203,38.627089))
-        print("hahah")
     }
 }
 
