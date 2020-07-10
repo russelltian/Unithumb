@@ -8,7 +8,7 @@
 
 #define INTERRUPT_PIN 2  // use pin 2 on Arduino Uno & most boards
 #define DEBUG true
-#define FORWARD 85
+#define FORWARD 72
 
 // MPU control/status vars
 bool dmpReady = false;  // set true if DMP init was successful
