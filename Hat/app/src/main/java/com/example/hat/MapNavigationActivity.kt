@@ -2,8 +2,7 @@ package com.example.hat
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothGattCharacteristic
+import android.bluetooth.BluetoothDevice
 import android.content.Intent
 import android.graphics.Color
 import android.location.Location
@@ -13,6 +12,9 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.harrysoft.androidbluetoothserial.BluetoothManager
+import com.harrysoft.androidbluetoothserial.BluetoothSerialDevice
+import com.harrysoft.androidbluetoothserial.SimpleBluetoothDeviceInterface
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.api.geocoding.v5.models.CarmenFeature
@@ -42,15 +44,10 @@ import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute
 import com.mapbox.services.android.navigation.v5.navigation.MapboxNavigation
 import com.mapbox.services.android.navigation.v5.routeprogress.ProgressChangeListener
 import com.mapbox.services.android.navigation.v5.routeprogress.RouteProgress
-import com.polidea.rxandroidble2.RxBleClient
-import com.polidea.rxandroidble2.RxBleConnection
-import com.polidea.rxandroidble2.RxBleDevice
-import com.polidea.rxandroidble2.scan.ScanSettings
-import io.reactivex.disposables.Disposable
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import java.lang.StrictMath.*
-import java.nio.ByteBuffer
 import java.text.DecimalFormat
-import java.util.*
 
 class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsListener,ProgressChangeListener
 
@@ -73,19 +70,12 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     private val routeManager = RouteManager(this)
 
     // Bluetooth
-    private var rxBleClient:RxBleClient ?= null
-    private lateinit var device:RxBleDevice // rxBleClient?.getBleDevice("2020")
-    private val mac_addr:String = "" //TODO: get device mac address
-    private var connectionDisposable: Disposable? = null
-
-    private var stateDisposable: Disposable? = null
-
-
+    // Setup our BluetoothManager
+    var bluetoothManager: BluetoothManager? = null
+    private val macaddress = "98:D3:37:90:E4:A9"
+    private var deviceInterface: SimpleBluetoothDeviceInterface? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Bluetooth
-        rxBleClient = RxBleClient.create(this)
 
         // Map access token is configured here.
         // TODO: the mapbox access token should be stored on a file for all copy of the program
@@ -113,7 +103,8 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         mapView = findViewById(R.id.mapView)
         mapView?.onCreate(savedInstanceState)
         mapView?.getMapAsync(this)
-
+        // Bluetooth
+        initBlueTooth()
         // TODO not sure if we keep this or not
 //        this.findViewById<Button>(R.id.start_navigating).setOnClickListener{
 //            if (routeManager.route == null){
@@ -176,7 +167,6 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         }
         mapboxMap.setStyle(Style.MAPBOX_STREETS) {style->
             initSearchFab()
-            initBlueTooth()
             // Map is set up and the style has been loaded.
             enableLocationComponent(style)
             symbolManager = mapView?.let { SymbolManager(it,mapboxMap, style) }
@@ -215,37 +205,23 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     // https://github.com/Polidea/RxAndroidBle
     @SuppressLint("CheckResult", "LogNotTimber")
     private fun initBlueTooth(){
+        bluetoothManager = BluetoothManager.getInstance()
+        if (bluetoothManager == null){
+            Toast.makeText(this, "Bluetooth not available.", Toast.LENGTH_LONG).show(); // Replace
+            finish()
+        }
 
-        val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-        val REQUEST_ENABLE_BT = 1
-        startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
+        val pairedDevices: Collection<BluetoothDevice> = bluetoothManager!!.pairedDevicesList
+        for (device in pairedDevices) {
+            Log.d("bluetooth", "Device name: " + device.name)
+            Log.d("bluetooth", "Device MAC Address: " + device.address)
+        }
 
         findViewById<View>(R.id.floatingActionButton2).setOnClickListener{
-//            val scanSubscription: Disposable? = rxBleClient?.scanBleDevices(
-//                ScanSettings.Builder() // .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY) // change if needed
-//                    // .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES) // change if needed
-//                    .build() // add filters if needed
-//            )
-//                ?.subscribe(
-//                    { scanResult ->
-//                    },
-//                    { throwable -> }
-//                )
-            device = rxBleClient?.getBleDevice(mac_addr)!!
-//            device.observeConnectionStateChanges()
-//                .subscribe { onConnectionStateChange(it) }
-//                .let { stateDisposable = it }
-            connectionDisposable = device.establishConnection(false) // <-- autoConnect flag
-                .subscribe(
-                    { rxBleConnection: RxBleConnection? -> Log.i("bluetooth","Connection received")}
-                ) { throwable: Throwable? -> Log.i("bluetooth","Connection error: $throwable")}
-            // When done, just dispose.
-            //scanSubscription?.dispose()
-
-
-            // Connect, disconnect
-            connectionDisposable = null
-
+            bluetoothManager!!.openSerialDevice(macaddress)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(this::onConnected, this::onError);
         }
     }
     @SuppressLint("MissingPermission")
@@ -319,17 +295,10 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                 val format = DecimalFormat("#.##")
                 val sendDegree = format.format(bearing)
                 Log.i("OnProgressChange", sendDegree)
-                val characteristicUUID = UUID(0x01,0x01)// NEED CHANGE
-                device!!.establishConnection(false)
-                    .flatMapSingle<Any> { rxBleConnection: RxBleConnection ->
-                        rxBleConnection.writeCharacteristic(
-                            characteristicUUID,
-                            sendDegree.toByteArray()
-                        )
-                    }
-                    .subscribe(
-                        { characteristicValue: Any? -> }
-                    ) { throwable: Throwable? -> }
+                // Send message to device connected
+                deviceInterface!!.sendMessage(sendDegree)
+
+
             }
         }
 
@@ -419,7 +388,6 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     }
     override fun onPause(){
         super.onPause()
-        connectionDisposable?.dispose()
         mapView?.onPause()
     }
     override fun onStop(){
@@ -461,9 +429,36 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
             Point.fromLngLat( -90.200203,38.627089))
     }
 
-    // BLUE TOOTH
-    private fun onConnectionStateChange(newState: RxBleConnection.RxBleConnectionState) {
+    // --------------------------- BLUETOOTH ---------------------------------------------
+    private fun onConnected(connectedDevice: BluetoothSerialDevice): Unit {
+        // You are now connected to this device!
+        // Here you may want to retain an instance to your device:
+        deviceInterface = connectedDevice.toSimpleDeviceInterface()
 
+        // Listen to bluetooth events
+        deviceInterface!!.setListeners(
+            { message: String -> onMessageReceived(message) },
+            { message: String -> onMessageSent(message) },
+            { error: Throwable -> onError(error) })
+    }
+
+    @SuppressLint("LogNotTimber")
+    private fun onMessageSent(message: String) {
+        // We sent a message! Handle it here.
+//        Toast.makeText(this, "Sent a message! Message was: $message", Toast.LENGTH_LONG)
+//            .show() // Replace context with your context instance.
+        Log.d("bluetooth", "Sent a message! Message was: $message")
+
+    }
+
+    private fun onMessageReceived(message: String) {
+        // We received a message! Handle it here.
+        Toast.makeText(this, "Received a message! Message was: $message", Toast.LENGTH_LONG)
+            .show() // Replace context with your context instance.
+    }
+
+    private fun onError(error: Throwable) {
+        // Handle the error
     }
 }
 
