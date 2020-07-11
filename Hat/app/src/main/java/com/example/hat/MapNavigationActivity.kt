@@ -12,6 +12,7 @@ import android.os.Bundle
 import android.os.PersistableBundle
 import android.util.Log
 import android.view.View
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.res.ResourcesCompat
@@ -48,6 +49,7 @@ import com.mapbox.services.android.navigation.v5.routeprogress.ProgressChangeLis
 import com.mapbox.services.android.navigation.v5.routeprogress.RouteProgress
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import kotlinx.android.synthetic.main.fragment_first.view.*
 import java.lang.StrictMath.*
 import java.text.DecimalFormat
 
@@ -105,7 +107,13 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         mapView?.onCreate(savedInstanceState)
         mapView?.getMapAsync(this)
         // Bluetooth
-        initBlueTooth()
+//        initBlueTooth()
+        findViewById<View>(R.id.floatingActionButton2).setOnClickListener{
+            initBlueTooth()
+        }
+        findViewById<View>(R.id.disconnect).setOnClickListener{
+            disconnect()
+        }
         // TODO not sure if we keep this or not
 //        this.findViewById<Button>(R.id.start_navigating).setOnClickListener{
 //            if (routeManager.route == null){
@@ -220,13 +228,8 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
             Log.d("bluetooth", "Device name: " + device.name)
             Log.d("bluetooth", "Device MAC Address: " + device.address)
         }
+        connectDevice(macaddress)
 
-        findViewById<View>(R.id.floatingActionButton2).setOnClickListener{
-            connectDevice(macaddress)
-        }
-        findViewById<View>(R.id.disconnect).setOnClickListener{
-            disconnect()
-        }
     }
     @SuppressLint("MissingPermission")
     private fun enableLocationComponent(loadedMapStyle: Style) {
@@ -295,11 +298,11 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                 val sendDegree = calcBearing(origin, nextPoint)
                 Log.i("OnProgressChange", sendDegree)
                 // Send message to device connected
-                if (deviceInterface != null){
+                if (deviceInterface != null && bluetoothManager!=null){
                     deviceInterface!!.sendMessage(sendDegree)
                 }
                 else{
-                    connectDevice(macaddress)
+                    initBlueTooth()
                 }
 
             }
@@ -476,12 +479,16 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     private fun disconnect(){
         // Disconnect all devices
         bluetoothManager?.close()
+        bluetoothManager = null
+        deviceInterface = null
     }
 
     private fun onMessageReceived(message: String) {
         // We received a message! Handle it here.
-        Toast.makeText(this, "Received a message! Message was: $message", Toast.LENGTH_LONG)
-            .show() // Replace context with your context instance.
+//        Toast.makeText(this, "Received a message! Message was: $message", Toast.LENGTH_LONG)
+//            .show() // Replace context with your context instance.
+        var text_box = findViewById<TextView>(R.id.debug_data_received)
+        text_box.setText(message).toString()
     }
 
     @SuppressLint("LogNotTimber")
