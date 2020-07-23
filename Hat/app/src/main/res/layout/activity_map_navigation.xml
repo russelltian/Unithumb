@@ -12,10 +12,20 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         mapbox:mapbox_cameraZoom="12"
-        tools:layout_editor_absoluteX="-32dp"
-        tools:layout_editor_absoluteY="56dp">
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="19dp">
+
 
     </com.mapbox.mapboxsdk.maps.MapView>
+
+    <Button
+        android:id="@+id/disconnect"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="100dp"
+        android:text="disconnect"
+        mapbox:layout_constraintBottom_toBottomOf="parent"
+        tools:ignore="MissingConstraints" />
 
     <Button
         android:id="@+id/start_navigating"
@@ -59,4 +69,37 @@
         mapbox:layout_constraintTop_toBottomOf="@+id/floatingActionButton2"
         mapbox:layout_constraintVertical_bias="1.0"
         tools:ignore="MissingConstraints" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="100dp"
+        app:layout_constraintBottom_toTopOf="@+id/floatingActionButton2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/debug_data_to_send"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="..."
+            android:textSize="24sp" />
+
+    </LinearLayout>
+
+
+    <TextView
+        android:id="@+id/debug_data_received"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="500dp"
+        android:text="lol"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/start_navigating"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="MissingConstraints" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

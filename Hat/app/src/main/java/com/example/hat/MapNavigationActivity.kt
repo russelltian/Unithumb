@@ -10,11 +10,13 @@ import android.os.Bundle
 import android.os.PersistableBundle
 import android.util.Log
 import android.view.View
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.harrysoft.androidbluetoothserial.BluetoothManager
-import com.harrysoft.androidbluetoothserial.BluetoothSerialDevice
-import com.harrysoft.androidbluetoothserial.SimpleBluetoothDeviceInterface
+import androidx.core.content.res.ResourcesCompat
+import com.example.hat.androidbluetoothserial.BluetoothManager
+import com.example.hat.androidbluetoothserial.BluetoothSerialDevice
+import com.example.hat.androidbluetoothserial.SimpleBluetoothDeviceInterface
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.api.geocoding.v5.models.CarmenFeature
@@ -22,7 +24,6 @@ import com.mapbox.geojson.Feature
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.geojson.Point
 import com.mapbox.mapboxsdk.Mapbox
-import com.mapbox.mapboxsdk.annotations.IconFactory
 import com.mapbox.mapboxsdk.camera.CameraPosition
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
 import com.mapbox.mapboxsdk.geometry.LatLng
@@ -48,6 +49,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import java.lang.StrictMath.*
 import java.text.DecimalFormat
+//import com.example.hat.androidbluetoothserial
 
 class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsListener,ProgressChangeListener
 
@@ -71,7 +73,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 
     // Bluetooth
     // Setup our BluetoothManager
-    var bluetoothManager: BluetoothManager? = null
+    private var bluetoothManager: BluetoothManager? = null
     private val macaddress = "98:D3:37:90:E4:A9"
     private var deviceInterface: SimpleBluetoothDeviceInterface? = null
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -103,7 +105,13 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         mapView?.onCreate(savedInstanceState)
         mapView?.getMapAsync(this)
         // Bluetooth
-        initBlueTooth()
+//        initBlueTooth()
+        findViewById<View>(R.id.floatingActionButton2).setOnClickListener{
+            initBlueTooth()
+        }
+        findViewById<View>(R.id.disconnect).setOnClickListener{
+            disconnect()
+        }
         // TODO not sure if we keep this or not
 //        this.findViewById<Button>(R.id.start_navigating).setOnClickListener{
 //            if (routeManager.route == null){
@@ -133,7 +141,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 //
 //        }
 
-
+        testBearing()
 
     }
 
@@ -173,7 +181,11 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
             symbolManager?.iconIgnorePlacement = true
             symbolManager?.iconTranslate = arrayOf(-4f, 5f)
             symbolManager?.iconRotationAlignment = ICON_ROTATION_ALIGNMENT_VIEWPORT
-            style.addImage("666", IconFactory.getInstance(this).defaultMarker().bitmap)
+            ResourcesCompat.getDrawable(resources, R.drawable.map_default_map_marker,null)?.let {
+                style.addImage("666",
+                    it
+                )
+            }
         }
     }
 
@@ -203,9 +215,9 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     // https://github.com/Polidea/RxAndroidBle
     @SuppressLint("CheckResult", "LogNotTimber")
     private fun initBlueTooth(){
-        bluetoothManager = BluetoothManager.getInstance()
+        bluetoothManager = BluetoothManager.instance
         if (bluetoothManager == null){
-            Toast.makeText(this, "Bluetooth not available.", Toast.LENGTH_LONG).show(); // Replace
+            Toast.makeText(this, "Bluetooth not available.", Toast.LENGTH_LONG).show() // Replace
             finish()
         }
 
@@ -214,13 +226,8 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
             Log.d("bluetooth", "Device name: " + device.name)
             Log.d("bluetooth", "Device MAC Address: " + device.address)
         }
+        connectDevice(macaddress)
 
-        findViewById<View>(R.id.floatingActionButton2).setOnClickListener{
-            bluetoothManager!!.openSerialDevice(macaddress)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(this::onConnected, this::onError)
-        }
     }
     @SuppressLint("MissingPermission")
     private fun enableLocationComponent(loadedMapStyle: Style) {
@@ -289,8 +296,12 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                 val sendDegree = calcBearing(origin, nextPoint)
                 Log.i("OnProgressChange", sendDegree)
                 // Send message to device connected
-                deviceInterface!!.sendMessage(sendDegree)
-
+                if (this.deviceInterface != null && bluetoothManager!=null){
+                    this.deviceInterface!!.sendMessage(sendDegree)
+                }
+                else{
+                    initBlueTooth()
+                }
 
             }
         }
@@ -404,6 +415,11 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     }
 
     fun calcBearing(origin: Point,nextPoint: Point): String {
+//        val lat1 = origin.latitude() * Math.PI/180
+//        val lon1 = origin.longitude() * Math.PI/180
+//        val lat2 = nextPoint.latitude() * Math.PI/180
+//        val lon2 = nextPoint.longitude() * Math.PI/180
+//        val dLon = (lon2 - lon1) * Math.PI/180
         val bearingX = cos(nextPoint.latitude()*Math.PI/180)* sin(
             ((nextPoint.longitude() - origin.longitude())
                     * Math.PI / 180)
@@ -411,48 +427,83 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         val bearingY = cos(origin.latitude()*Math.PI/180)*sin(nextPoint.latitude()*Math.PI/180) -
                 sin(origin.latitude()*Math.PI/180)*cos(nextPoint.latitude()*Math.PI/180)*
                 cos((nextPoint.longitude()-origin.longitude())*Math.PI/180)
+//        val bearingX = cos(lat2) * sin(dLon)
+//        val bearingY = cos(lat1)*sin(lat2) - sin(lat1)*cos(lat2)*cos(dLon)
         val bearing = atan2(bearingX,bearingY) * 180 / Math.PI
+        //bearing = (360 - ((bearing+360)%360))
         val format = DecimalFormat("#.##")
         return format.format(bearing)
     }
 
-//    fun testBearing(){
-//        calcBearing(Point.fromLngLat( -94.581213,39.099912),
-//            Point.fromLngLat( -90.200203,38.627089))
-//    }
+    fun testBearing(){
+        val a = calcBearing(Point.fromLngLat( -94.581213,39.099912),
+            Point.fromLngLat( -90.200203,38.627089))
+        val b = calcBearing(Point.fromLngLat( -79.3832,43.6532),
+            Point.fromLngLat( -79.383,43.6531))
+
+        print(a)
+    }
 
     // --------------------------- BLUETOOTH ---------------------------------------------
+
+    @SuppressLint("CheckResult")
+    private fun connectDevice(mac: String) {
+        bluetoothManager!!.openSerialDevice(mac)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(this::onConnected, this::onError)
+    }
+
     private fun onConnected(connectedDevice: BluetoothSerialDevice) {
         // You are now connected to this device!
         // Here you may want to retain an instance to your device:
-        deviceInterface = connectedDevice.toSimpleDeviceInterface()
+        this.deviceInterface = connectedDevice.toSimpleDeviceInterface()
 
         // Listen to bluetooth events
-        deviceInterface!!.setListeners(
-            { message: String -> onMessageReceived(message) },
-            { message: String -> onMessageSent(message) },
-            { error: Throwable -> onError(error) })
+//        deviceInterface!!.setListeners(
+//            { message: String -> onMessageReceived(message) },
+//            { message: String -> onMessageSent(message) },
+//            { error: Throwable -> onError(error) }
+//        )
+
+        this.deviceInterface!!.setMessageReceivedListener( object:SimpleBluetoothDeviceInterface.OnMessageReceivedListener  {
+            override fun onMessageReceived(message: String){
+                var text_box = findViewById<TextView>(R.id.debug_data_received)
+                text_box.setText(message).toString()
+            }
+        })
+
+        this.deviceInterface!!.setMessageSentListener( object:SimpleBluetoothDeviceInterface.OnMessageSentListener  {
+            override fun onMessageSent(message: String) {
+                Log.d("bluetooth", "Sent a message! Message was: $message")
+            }
+        })
+
+        this.deviceInterface!!.setErrorListener( object:SimpleBluetoothDeviceInterface.OnErrorListener  {
+            override fun onError(error: Throwable) {
+                Log.e("bluetooth",error.toString())
+                bluetoothManager?.close()
+                bluetoothManager = null
+                deviceInterface = null
+            }
+        })
     }
 
-    @SuppressLint("LogNotTimber")
-    private fun onMessageSent(message: String) {
-        // We sent a message! Handle it here.
-//        Toast.makeText(this, "Sent a message! Message was: $message", Toast.LENGTH_LONG)
-//            .show() // Replace context with your context instance.
-        Log.d("bluetooth", "Sent a message! Message was: $message")
-
+    private fun disconnect(){
+        // Disconnect all devices
+        bluetoothManager?.closeDevice(macaddress) // Close by mac
+        bluetoothManager?.close()
+        bluetoothManager = null
+        deviceInterface = null
     }
 
-    private fun onMessageReceived(message: String) {
-        // We received a message! Handle it here.
-        Toast.makeText(this, "Received a message! Message was: $message", Toast.LENGTH_LONG)
-            .show() // Replace context with your context instance.
-    }
 
-    @SuppressLint("LogNotTimber")
     private fun onError(error: Throwable) {
         // Handle the error
         Log.e("bluetooth",error.toString())
+        bluetoothManager?.close()
+        bluetoothManager = null
+        deviceInterface = null
     }
 }
 

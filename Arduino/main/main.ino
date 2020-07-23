@@ -8,7 +8,7 @@
 
 #define INTERRUPT_PIN 2  // use pin 2 on Arduino Uno & most boards
 #define DEBUG true
-#define FORWARD 85
+#define FORWARD 72
 
 // MPU control/status vars
 bool dmpReady = false;  // set true if DMP init was successful
@@ -51,9 +51,9 @@ void initialize_imu(){
 
     // wait for ready
     Serial.println(F("\nSend any character to begin DMP programming and demo: "));
-    while (Serial.available() && Serial.read()); // empty buffer
-    while (!Serial.available());                 // wait for data
-    while (Serial.available() && Serial.read()); // empty buffer again
+//    while (Serial.available() && Serial.read()); // empty buffer
+//    while (!Serial.available());                 // wait for data
+//    while (Serial.available() && Serial.read()); // empty buffer again
 
     // load and configure the DMP
     Serial.println(F("Initializing DMP..."));
