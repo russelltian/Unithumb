@@ -21,6 +21,7 @@ class RouteManager(context: MapNavigationActivity) {
     private var geometry: Queue<Point>?=null
     private var nextPoint: Point ?= null
 
+    @SuppressLint("LogNotTimber")
     fun getNextPoint(curr:Point): Point? {
         if(nextPoint==null){
             if(geometry==null){
@@ -29,23 +30,28 @@ class RouteManager(context: MapNavigationActivity) {
                 nextPoint = geometry!!.poll()
             }
         }else{
-            val last = nextPoint?.latitude()?.div(10)?.let { Point.fromLngLat(
+            var last = nextPoint?.latitude()?.div(10)?.let { Point.fromLngLat(
                 nextPoint?.longitude()?.div(10)!!,it)
             }
-            val distance = TurfMeasurement.distance(curr,last!!)
+            var distance = TurfMeasurement.distance(curr,last!!)
             Log.i("distance:",distance.toString())
-            if(distance <0.1){
+            while(distance <0.02){
                 if(!geometry?.isEmpty()!!){
                     nextPoint = geometry!!.poll()
+                }else{
+                    break
                 }
+                last = nextPoint?.latitude()?.div(10)?.let { Point.fromLngLat(
+                    nextPoint?.longitude()?.div(10)!!,it)
+                }
+                distance = TurfMeasurement.distance(curr,last!!)
             }
 
         }
-        val ret = nextPoint?.latitude()?.div(10)?.let { Point.fromLngLat(
+
+        return nextPoint?.latitude()?.div(10)?.let { Point.fromLngLat(
             nextPoint?.longitude()?.div(10)!!,it)
         }
-
-        return ret
     }
 
     fun getRoute(origin: Point, destination: Point){
@@ -71,9 +77,10 @@ class RouteManager(context: MapNavigationActivity) {
 
                         route?.geometry()?.let { it1 ->
                             val waypoints = PolylineUtils.decode(it1, 5)
-                            geometry = LinkedList<Point>(waypoints)
+                            geometry = LinkedList(waypoints)
                             nextPoint = null
                         }
+                        // clear all the pin point
                         ctx.displayRoute()
 
 
