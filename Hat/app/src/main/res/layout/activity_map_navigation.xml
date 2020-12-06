@@ -27,46 +27,33 @@
         mapbox:layout_constraintBottom_toBottomOf="parent"
         tools:ignore="MissingConstraints" />
 
-    <Button
-        android:id="@+id/start_navigating"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
-        android:layout_marginBottom="24dp"
-        android:enabled="true"
-        android:text="@string/start_navigating"
-        android:textColor="@color/colorPrimaryDark"
-        mapbox:layout_constraintBottom_toBottomOf="parent"
-        mapbox:layout_constraintEnd_toEndOf="parent"
-        mapbox:layout_constraintStart_toStartOf="parent" />
-
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/floatingActionButton2"
+        android:id="@+id/searchDeviceBotton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="115dp"
+        android:backgroundTint="#070707"
         android:clickable="true"
-        app:srcCompat="@android:drawable/checkbox_on_background"
-        mapbox:layout_constraintBottom_toTopOf="@+id/start_navigating"
+        android:contentDescription="TODO"
+        app:layout_constraintBottom_toTopOf="@id/searchRouteButton"
+        app:srcCompat="@android:drawable/ic_menu_add"
         mapbox:layout_constraintEnd_toEndOf="parent"
         mapbox:layout_constraintHorizontal_bias="0.932"
         mapbox:layout_constraintStart_toStartOf="parent" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab_location_search"
+        android:id="@+id/searchRouteButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end|bottom"
-        android:layout_marginBottom="29dp"
+        android:contentDescription="TODO"
         android:tint="@android:color/white"
-        app:backgroundTint="@color/colorPrimary"
-        app:srcCompat="@android:drawable/ic_search_category_default"
-        mapbox:layout_constraintBottom_toTopOf="@+id/start_navigating"
+        app:backgroundTint="#000000"
+        app:layout_constraintTop_toBottomOf="@id/searchDeviceBotton"
+        app:srcCompat="@android:drawable/ic_menu_directions"
         mapbox:layout_constraintEnd_toEndOf="parent"
         mapbox:layout_constraintHorizontal_bias="0.932"
         mapbox:layout_constraintStart_toStartOf="parent"
-        mapbox:layout_constraintTop_toBottomOf="@+id/floatingActionButton2"
         mapbox:layout_constraintVertical_bias="1.0"
         tools:ignore="MissingConstraints" />
 
@@ -74,7 +61,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="100dp"
-        app:layout_constraintBottom_toTopOf="@+id/floatingActionButton2"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -93,12 +79,9 @@
         android:id="@+id/debug_data_received"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="500dp"
         android:text="lol"
         android:textSize="20sp"
-        app:layout_constraintBottom_toTopOf="@+id/start_navigating"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="MissingConstraints" />
 
