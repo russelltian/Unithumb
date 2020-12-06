@@ -10,12 +10,14 @@ import android.os.Bundle
 import android.os.PersistableBundle
 import android.util.Log
 import android.view.View
+import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.res.ResourcesCompat
 import com.example.hat.androidbluetoothserial.BluetoothManager
 import com.example.hat.androidbluetoothserial.BluetoothSerialDevice
 import com.example.hat.androidbluetoothserial.SimpleBluetoothDeviceInterface
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.api.geocoding.v5.models.CarmenFeature
@@ -78,6 +80,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     private var bluetoothManager: BluetoothManager? = null
     private val macaddress = "98:D3:37:90:E4:A9"
     private var deviceInterface: SimpleBluetoothDeviceInterface? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Map access token is configured here.
@@ -160,7 +163,18 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
             val destination: Point =
                 Point.fromLngLat(click.longitude,click.latitude)
             globalDestination = destination
-            origin?.let { routeManager.getRoute(it, globalDestination!!) }
+
+            // Logic: if there isn't a travel ongoing, calculate the route and make the navigation button visible
+            val startNavigationButton: FloatingActionButton ?= findViewById(R.id.startNavigationButton)   // The button that will start a travel session
+            val stopNavigationButton: FloatingActionButton ?= findViewById(R.id.stopNavigationButton)   // The button that will stop a travel session
+            // toggle the visibility of a button
+
+            if (stopNavigationButton != null && startNavigationButton != null) {
+                if (stopNavigationButton.visibility != View.VISIBLE){
+                    startNavigationButton.visibility = View.VISIBLE
+                    origin?.let { routeManager.getRoute(it, globalDestination!!) }
+                }
+            }
             symbolManager?.deleteAll()
             // TODO: fix icon name with proper lib
             symbolManager?.create(
