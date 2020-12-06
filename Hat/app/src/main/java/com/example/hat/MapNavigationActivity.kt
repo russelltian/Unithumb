@@ -10,13 +10,14 @@ import android.os.Bundle
 import android.os.PersistableBundle
 import android.util.Log
 import android.view.View
-import android.widget.TextView
+import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.res.ResourcesCompat
 import com.example.hat.androidbluetoothserial.BluetoothManager
 import com.example.hat.androidbluetoothserial.BluetoothSerialDevice
 import com.example.hat.androidbluetoothserial.SimpleBluetoothDeviceInterface
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.api.geocoding.v5.models.CarmenFeature
@@ -51,6 +52,9 @@ import java.lang.StrictMath.*
 import java.text.DecimalFormat
 //import com.example.hat.androidbluetoothserial
 
+/*
+This is the main activity of the app.
+ */
 class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsListener,ProgressChangeListener
 
 {
@@ -76,6 +80,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     private var bluetoothManager: BluetoothManager? = null
     private val macaddress = "98:D3:37:90:E4:A9"
     private var deviceInterface: SimpleBluetoothDeviceInterface? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Map access token is configured here.
@@ -104,21 +109,28 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         mapView = findViewById(R.id.mapView)
         mapView?.onCreate(savedInstanceState)
         mapView?.getMapAsync(this)
-        // Bluetooth
-//        initBlueTooth()
-        findViewById<View>(R.id.floatingActionButton2).setOnClickListener{
-            initBlueTooth()
+        // Bluetooth Set up listener
+        findViewById<View>(R.id.searchDeviceButton).setOnClickListener{
+            //initBlueTooth()
         }
-        findViewById<View>(R.id.disconnect).setOnClickListener{
-            disconnect()
-        }
-        // TODO not sure if we keep this or not
-//        this.findViewById<Button>(R.id.start_navigating).setOnClickListener{
-//            if (routeManager.route == null){
-//                return@setOnClickListener
-//            }
-////            locationEngine.assign(routeManager.route)
-////            mapboxNavigation?.locationEngine = locationEngine
+//        findViewById<View>(R.id.disconnect).setOnClickListener{
+//            disconnect()
+//        }
+
+        // Handles Green button logic
+        findViewById<FloatingActionButton>(R.id.startNavigationButton).setOnClickListener{
+            // No available route being displayed
+            if (routeManager.route == null){
+                return@setOnClickListener
+            }
+            val stopNavigationButton = findViewById<FloatingActionButton>(R.id.stopNavigationButton)
+            if (stopNavigationButton == null){
+                error("Click on StartNavigation Button error: stop navigation button not found")
+            }
+            stopNavigationButton.visibility = View.VISIBLE
+            it.findViewById<FloatingActionButton>(R.id.startNavigationButton).visibility = View.INVISIBLE
+//            locationEngine.assign(routeManager.route)
+//            mapboxNavigation?.locationEngine = locationEngine
 //            if (ActivityCompat.checkSelfPermission(
 //                    this,
 //                    Manifest.permission.ACCESS_FINE_LOCATION
@@ -138,9 +150,26 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 //            }
 //            map?.locationComponent?.isLocationComponentEnabled = true
 //         //   mapboxNavigation?.startNavigation(route!!)
-//
-//        }
 
+        }
+
+        // Handles Red stop buttons logic
+        findViewById<FloatingActionButton>(R.id.stopNavigationButton).setOnClickListener {
+            // Clear the route on the screen as well as the symbols
+            if (routeManager.route != null) {
+                routeManager.route = null
+                symbolManager?.deleteAll()
+                navigationMapRoute?.updateRouteVisibilityTo(false)
+                navigationMapRoute?.updateRouteArrowVisibilityTo(false)
+            }
+            val startNavigationButton = findViewById<FloatingActionButton>(R.id.startNavigationButton)
+            if (startNavigationButton == null) {
+                error("Click on StopNavigation Button error: start navigation button not found")
+            }
+            startNavigationButton.visibility = View.VISIBLE
+            it.findViewById<FloatingActionButton>(R.id.stopNavigationButton).visibility =
+                View.INVISIBLE
+        }
         testBearing()
 
     }
@@ -148,7 +177,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 
     override fun onMapReady(mapboxMap: MapboxMap) {
         this.map = mapboxMap
-        // By long click the map, we get a new route
+        // By long pressing the map, we get a new route with current position as origin and long press location as destination
         mapboxMap.addOnMapLongClickListener{click->
             val origin =
                 map?.locationComponent?.lastKnownLocation?.longitude?.let { map?.locationComponent?.lastKnownLocation?.latitude?.let { it1 ->
@@ -159,14 +188,25 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
             val destination: Point =
                 Point.fromLngLat(click.longitude,click.latitude)
             globalDestination = destination
-            origin?.let { routeManager.getRoute(it, globalDestination!!) }
+
+            // Logic: if there isn't a travel ongoing, calculate the route and make the navigation button visible
+            val startNavigationButton: FloatingActionButton ?= findViewById(R.id.startNavigationButton)   // The button that will start a travel session
+            val stopNavigationButton: FloatingActionButton ?= findViewById(R.id.stopNavigationButton)   // The button that will stop a travel session
+            // toggle the visibility of a button
+
+            if (stopNavigationButton != null && startNavigationButton != null) {
+                if (stopNavigationButton.visibility != View.VISIBLE){
+                    startNavigationButton.visibility = View.VISIBLE
+                    origin?.let { routeManager.getRoute(it, globalDestination!!) }
+                }
+            }
             symbolManager?.deleteAll()
             // TODO: fix icon name with proper lib
             symbolManager?.create(
                 SymbolOptions()
                     .withLatLng(LatLng(click.latitude,click.longitude))
                     .withIconImage("666")
-                    .withIconSize(2.0f)
+                    .withIconSize(1.0f)
             )
             // the other trigger will not be skipped
             false
@@ -189,9 +229,13 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         }
     }
 
-    // A searching bar on the map for destination searching
+    /* ----------------------------------------------------------------------
+
+                             Route Searching
+     A searching bar on the map for destination searching
+    */
     private fun initSearchFab() {
-        findViewById<View>(R.id.fab_location_search).setOnClickListener {
+        findViewById<View>(R.id.searchRouteButton).setOnClickListener {
             val intent: Intent = (getString(
                 R.string.mapbox_access_token
             ).let { it1 ->
@@ -202,7 +246,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                     .placeOptions(
                         PlaceOptions.builder()
                             .backgroundColor(Color.parseColor("#EEEEEE"))
-                            .limit(10)
+                            .limit(5)
                             .build(PlaceOptions.MODE_CARDS)
                     )
                     .build(this)
@@ -211,73 +255,6 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         }
     }
 
-    // Set up bluetooth scan
-    // https://github.com/Polidea/RxAndroidBle
-    @SuppressLint("CheckResult", "LogNotTimber")
-    private fun initBlueTooth(){
-        bluetoothManager = BluetoothManager.instance
-        if (bluetoothManager == null){
-            Toast.makeText(this, "Bluetooth not available.", Toast.LENGTH_LONG).show() // Replace
-            finish()
-        }
-
-        val pairedDevices: Collection<BluetoothDevice> = bluetoothManager!!.pairedDevicesList
-        for (device in pairedDevices) {
-            Log.d("bluetooth", "Device name: " + device.name)
-            Log.d("bluetooth", "Device MAC Address: " + device.address)
-        }
-        connectDevice(macaddress)
-
-    }
-    @SuppressLint("MissingPermission")
-    private fun enableLocationComponent(loadedMapStyle: Style) {
-        // Check if permissions are enabled and if not request
-        if (PermissionsManager.areLocationPermissionsGranted(this)) {
-
-            // Create and customize the LocationComponent's options
-            val customLocationComponentOptions = LocationComponentOptions.builder(this)
-                .trackingGesturesManagement(true)
-                .build()
-
-            val locationComponentActivationOptions = LocationComponentActivationOptions.builder(this, loadedMapStyle)
-                .locationComponentOptions(customLocationComponentOptions)
-                .build()
-
-            // Get an instance of the LocationComponent and then adjust its settings
-            map?.locationComponent?.apply {
-
-                // Activate the LocationComponent with options
-                activateLocationComponent(locationComponentActivationOptions)
-
-                // Enable to make the LocationComponent visible
-                isLocationComponentEnabled = true
-
-                // Set the LocationComponent's camera mode
-                cameraMode = CameraMode.TRACKING
-
-                // Set the LocationComponent's render mode
-                renderMode = RenderMode.COMPASS
-            }
-        } else {
-            permissionsManager = PermissionsManager(this)
-            permissionsManager.requestLocationPermissions(this)
-        }
-    }
-
-    // When the user deny the permission for the first time
-    override fun onExplanationNeeded(permissionsToExplain: MutableList<String>?) {
-        // Present a toast or a dialog explaining why they need to grant permission
-        Toast.makeText(this,"The location request has been declined by the user", Toast.LENGTH_LONG).show()
-    }
-
-    override fun onPermissionResult(granted: Boolean) {
-        if(granted){
-            enableLocationComponent(map?.style!!)
-        }else{
-            Toast.makeText(this,"User location permission is not granted",Toast.LENGTH_LONG).show()
-            finish()
-        }
-    }
 
     @SuppressLint("LogNotTimber", "CheckResult")
     override fun onProgressChange(location: Location?, routeProgress: RouteProgress?) {
@@ -287,7 +264,11 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
             val origin = location.longitude.let { Point.fromLngLat(it,location.latitude) }
 
             val nextPoint: Point? = routeManager.getNextPoint(origin)
-            if (nextPoint != null) {
+            val in_travel_session = findViewById<FloatingActionButton>(R.id.stopNavigationButton)
+            if (in_travel_session == null){
+                Log.e("OnProgressChange","No stop travel button found")
+            }
+            if (nextPoint != null && in_travel_session.visibility == View.VISIBLE) {
                 symbolManager?.create(SymbolOptions()
                     .withLatLng(LatLng(nextPoint.latitude(),nextPoint.longitude()))
                     .withIconImage("666")
@@ -300,7 +281,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                     this.deviceInterface!!.sendMessage(sendDegree)
                 }
                 else{
-                    initBlueTooth()
+//                    initBlueTooth()
                 }
 
             }
@@ -362,6 +343,8 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         }
     }
 
+
+
     fun displayRoute(){
         routeManager.route?.let { mapboxNavigation?.startNavigation(it) }
 
@@ -381,6 +364,62 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         }
 
     }
+
+    /*
+
+    ------------------------------------Built in location service-----------------------------------
+
+     */
+    @SuppressLint("MissingPermission")
+    private fun enableLocationComponent(loadedMapStyle: Style) {
+        // Check if permissions are enabled and if not request
+        if (PermissionsManager.areLocationPermissionsGranted(this)) {
+
+            // Create and customize the LocationComponent's options
+            val customLocationComponentOptions = LocationComponentOptions.builder(this)
+                .trackingGesturesManagement(true)
+                .build()
+
+            val locationComponentActivationOptions = LocationComponentActivationOptions.builder(this, loadedMapStyle)
+                .locationComponentOptions(customLocationComponentOptions)
+                .build()
+
+            // Get an instance of the LocationComponent and then adjust its settings
+            map?.locationComponent?.apply {
+
+                // Activate the LocationComponent with options
+                activateLocationComponent(locationComponentActivationOptions)
+
+                // Enable to make the LocationComponent visible
+                isLocationComponentEnabled = true
+
+                // Set the LocationComponent's camera mode
+                cameraMode = CameraMode.TRACKING
+
+                // Set the LocationComponent's render mode
+                renderMode = RenderMode.COMPASS
+            }
+        } else {
+            permissionsManager = PermissionsManager(this)
+            permissionsManager.requestLocationPermissions(this)
+        }
+    }
+
+    // When the user deny the permission for the first time
+    override fun onExplanationNeeded(permissionsToExplain: MutableList<String>?) {
+        // Present a toast or a dialog explaining why they need to grant permission
+        Toast.makeText(this,"The location request has been declined by the user", Toast.LENGTH_LONG).show()
+    }
+
+    override fun onPermissionResult(granted: Boolean) {
+        if(granted){
+            enableLocationComponent(map?.style!!)
+        }else{
+            Toast.makeText(this,"User location permission is not granted",Toast.LENGTH_LONG).show()
+            finish()
+        }
+    }
+
 
     override fun onStart(){
         super.onStart()
@@ -444,7 +483,29 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         print(a)
     }
 
-    // --------------------------- BLUETOOTH ---------------------------------------------
+    /*
+ ---------------------------------Bluetooth-----------------------------------------------------
+       Set up bluetooth scan
+     https://github.com/Polidea/RxAndroidBle
+ */
+
+    @SuppressLint("CheckResult", "LogNotTimber")
+    private fun initBlueTooth(){
+        bluetoothManager = BluetoothManager.instance
+        if (bluetoothManager == null){
+            Toast.makeText(this, "Bluetooth not available.", Toast.LENGTH_LONG).show() // Replace
+            finish()
+        }
+
+        val pairedDevices: Collection<BluetoothDevice> = bluetoothManager!!.pairedDevicesList
+        for (device in pairedDevices) {
+            Log.d("bluetooth", "Device name: " + device.name)
+            Log.d("bluetooth", "Device MAC Address: " + device.address)
+        }
+        connectDevice(macaddress)
+
+    }
+
 
     @SuppressLint("CheckResult")
     private fun connectDevice(mac: String) {
@@ -468,18 +529,20 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 
         this.deviceInterface!!.setMessageReceivedListener( object:SimpleBluetoothDeviceInterface.OnMessageReceivedListener  {
             override fun onMessageReceived(message: String){
-                var text_box = findViewById<TextView>(R.id.debug_data_received)
-                text_box.setText(message).toString()
+//                val text_box = findViewById<TextView>(R.id.debug_data_received)
+//                text_box.setText(message).toString()
             }
         })
 
         this.deviceInterface!!.setMessageSentListener( object:SimpleBluetoothDeviceInterface.OnMessageSentListener  {
+            @SuppressLint("LogNotTimber")
             override fun onMessageSent(message: String) {
                 Log.d("bluetooth", "Sent a message! Message was: $message")
             }
         })
 
         this.deviceInterface!!.setErrorListener( object:SimpleBluetoothDeviceInterface.OnErrorListener  {
+            @SuppressLint("LogNotTimber")
             override fun onError(error: Throwable) {
                 Log.e("bluetooth",error.toString())
                 bluetoothManager?.close()
@@ -498,6 +561,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     }
 
 
+    @SuppressLint("LogNotTimber")
     private fun onError(error: Throwable) {
         // Handle the error
         Log.e("bluetooth",error.toString())
