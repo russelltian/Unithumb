@@ -11,78 +11,53 @@
         android:id="@+id/mapView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        mapbox:mapbox_cameraZoom="12"
-        tools:layout_editor_absoluteX="0dp"
-        tools:layout_editor_absoluteY="19dp">
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0"
+        mapbox:mapbox_cameraZoom="12">
 
 
     </com.mapbox.mapboxsdk.maps.MapView>
 
-    <Button
-        android:id="@+id/disconnect"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="100dp"
-        android:text="disconnect"
-        mapbox:layout_constraintBottom_toBottomOf="parent"
-        tools:ignore="MissingConstraints" />
-
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/searchDeviceBotton"
+        android:id="@+id/searchDeviceButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="115dp"
-        android:backgroundTint="#070707"
         android:clickable="true"
         android:contentDescription="TODO"
-        app:layout_constraintBottom_toTopOf="@id/searchRouteButton"
-        app:srcCompat="@android:drawable/ic_menu_add"
-        mapbox:layout_constraintEnd_toEndOf="parent"
-        mapbox:layout_constraintHorizontal_bias="0.932"
-        mapbox:layout_constraintStart_toStartOf="parent" />
+        app:backgroundTint="#101010"
+        app:layout_constraintBottom_toBottomOf="@+id/mapView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.93"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.7"
+        mapbox:srcCompat="@android:drawable/ic_input_add" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/searchRouteButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="end|bottom"
-        android:contentDescription="TODO"
-        android:tint="@android:color/white"
-        app:backgroundTint="#000000"
-        app:layout_constraintTop_toBottomOf="@id/searchDeviceBotton"
-        app:srcCompat="@android:drawable/ic_menu_directions"
-        mapbox:layout_constraintEnd_toEndOf="parent"
-        mapbox:layout_constraintHorizontal_bias="0.932"
-        mapbox:layout_constraintStart_toStartOf="parent"
-        mapbox:layout_constraintVertical_bias="1.0"
-        tools:ignore="MissingConstraints" />
+        android:clickable="true"
+        app:backgroundTint="#020202"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.93"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/linearLayout2"
+        app:layout_constraintVertical_bias="0.82"
+        mapbox:srcCompat="@android:drawable/ic_menu_directions" />
 
     <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="100dp"
+        android:id="@+id/linearLayout2"
+        android:layout_width="0dp"
+        android:layout_height="6dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <TextView
-            android:id="@+id/debug_data_to_send"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="..."
-            android:textSize="24sp" />
-
-    </LinearLayout>
-
-
-    <TextView
-        android:id="@+id/debug_data_received"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="lol"
-        android:textSize="20sp"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="MissingConstraints" />
+        android:orientation="horizontal" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

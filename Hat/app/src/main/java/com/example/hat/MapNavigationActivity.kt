@@ -10,7 +10,6 @@ import android.os.Bundle
 import android.os.PersistableBundle
 import android.util.Log
 import android.view.View
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.res.ResourcesCompat
@@ -108,12 +107,12 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         mapView?.onCreate(savedInstanceState)
         mapView?.getMapAsync(this)
         // Bluetooth Set up listener
-        findViewById<View>(R.id.searchDeviceBotton).setOnClickListener{
-            initBlueTooth()
+        findViewById<View>(R.id.searchDeviceButton).setOnClickListener{
+            //initBlueTooth()
         }
-        findViewById<View>(R.id.disconnect).setOnClickListener{
-            disconnect()
-        }
+//        findViewById<View>(R.id.disconnect).setOnClickListener{
+//            disconnect()
+//        }
         // TODO not sure if we keep this or not
 //        this.findViewById<Button>(R.id.start_navigating).setOnClickListener{
 //            if (routeManager.route == null){
@@ -487,8 +486,8 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 
         this.deviceInterface!!.setMessageReceivedListener( object:SimpleBluetoothDeviceInterface.OnMessageReceivedListener  {
             override fun onMessageReceived(message: String){
-                val text_box = findViewById<TextView>(R.id.debug_data_received)
-                text_box.setText(message).toString()
+//                val text_box = findViewById<TextView>(R.id.debug_data_received)
+//                text_box.setText(message).toString()
             }
         })
 
