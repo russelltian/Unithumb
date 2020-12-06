@@ -2,6 +2,9 @@ package com.example.hat
 
 import android.annotation.SuppressLint
 import android.util.Log
+import android.view.View
+import androidx.core.view.isVisible
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.mapbox.api.directions.v5.models.DirectionsResponse
 import com.mapbox.api.directions.v5.models.DirectionsRoute
 import com.mapbox.geojson.Point
@@ -25,11 +28,12 @@ class RouteManager(context: MapNavigationActivity) {
     fun getNextPoint(curr:Point): Point? {
         if(nextPoint==null){
             if(geometry==null){
-                Log.e("route manager","empty geometry")
+                Log.e("Route manager:","empty geometry in the route returned")
             }else{
                 nextPoint = geometry!!.poll()
             }
         }else{
+            // David's codes
             var last = nextPoint?.latitude()?.div(10)?.let { Point.fromLngLat(
                 nextPoint?.longitude()?.div(10)!!,it)
             }
@@ -80,10 +84,25 @@ class RouteManager(context: MapNavigationActivity) {
                             geometry = LinkedList(waypoints)
                             nextPoint = null
                         }
-                        // clear all the pin point
-                        ctx.displayRoute()
-
-
+                        /*
+                        If in a travel session then, define the
+                         */
+                        val in_travel_session = ctx.findViewById<FloatingActionButton>(R.id.stopNavigationButton)
+                        val out_of_traval_session = ctx.findViewById<FloatingActionButton>(R.id.startNavigationButton)
+                        if (in_travel_session != null){
+                            if(in_travel_session.visibility != View.VISIBLE) {
+                                // clear all the pin point
+                                ctx.displayRoute()
+                            }
+                            // The start navigation button should always be defined
+                            if (BuildConfig.DEBUG && out_of_traval_session == null) {
+                                error("Route Manager: start navigation button is not defined!")
+                            }
+                            // make sure the start button is always on
+                            out_of_traval_session.visibility = View.VISIBLE
+                        }else{
+                            error("Route Manager: stop navigation button is not defined!")
+                        }
                     }
 
 
@@ -100,7 +119,6 @@ class RouteManager(context: MapNavigationActivity) {
 //            navigationMapRoute?.updateRouteArrowVisibilityTo(false)
 //            navigationMapRoute?.addRoute(route)
 //        }
-
 
     }
 }

@@ -116,13 +116,21 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 //        findViewById<View>(R.id.disconnect).setOnClickListener{
 //            disconnect()
 //        }
-        // TODO not sure if we keep this or not
-//        this.findViewById<Button>(R.id.start_navigating).setOnClickListener{
-//            if (routeManager.route == null){
-//                return@setOnClickListener
-//            }
-////            locationEngine.assign(routeManager.route)
-////            mapboxNavigation?.locationEngine = locationEngine
+
+        // Handles Green button logic
+        findViewById<FloatingActionButton>(R.id.startNavigationButton).setOnClickListener{
+            // No available route being displayed
+            if (routeManager.route == null){
+                return@setOnClickListener
+            }
+            val stopNavigationButton = findViewById<FloatingActionButton>(R.id.stopNavigationButton)
+            if (stopNavigationButton == null){
+                error("Click on StartNavigation Button error: stop navigation button not found")
+            }
+            stopNavigationButton.visibility = View.VISIBLE
+            it.findViewById<FloatingActionButton>(R.id.startNavigationButton).visibility = View.INVISIBLE
+//            locationEngine.assign(routeManager.route)
+//            mapboxNavigation?.locationEngine = locationEngine
 //            if (ActivityCompat.checkSelfPermission(
 //                    this,
 //                    Manifest.permission.ACCESS_FINE_LOCATION
@@ -142,9 +150,26 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 //            }
 //            map?.locationComponent?.isLocationComponentEnabled = true
 //         //   mapboxNavigation?.startNavigation(route!!)
-//
-//        }
 
+        }
+
+        // Handles Red stop buttons logic
+        findViewById<FloatingActionButton>(R.id.stopNavigationButton).setOnClickListener {
+            // Clear the route on the screen as well as the symbols
+            if (routeManager.route != null) {
+                routeManager.route = null
+                symbolManager?.deleteAll()
+                navigationMapRoute?.updateRouteVisibilityTo(false)
+                navigationMapRoute?.updateRouteArrowVisibilityTo(false)
+            }
+            val startNavigationButton = findViewById<FloatingActionButton>(R.id.startNavigationButton)
+            if (startNavigationButton == null) {
+                error("Click on StopNavigation Button error: start navigation button not found")
+            }
+            startNavigationButton.visibility = View.VISIBLE
+            it.findViewById<FloatingActionButton>(R.id.stopNavigationButton).visibility =
+                View.INVISIBLE
+        }
         testBearing()
 
     }
@@ -181,7 +206,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                 SymbolOptions()
                     .withLatLng(LatLng(click.latitude,click.longitude))
                     .withIconImage("666")
-                    .withIconSize(2.0f)
+                    .withIconSize(1.0f)
             )
             // the other trigger will not be skipped
             false
@@ -239,7 +264,11 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
             val origin = location.longitude.let { Point.fromLngLat(it,location.latitude) }
 
             val nextPoint: Point? = routeManager.getNextPoint(origin)
-            if (nextPoint != null) {
+            val in_travel_session = findViewById<FloatingActionButton>(R.id.stopNavigationButton)
+            if (in_travel_session == null){
+                Log.e("OnProgressChange","No stop travel button found")
+            }
+            if (nextPoint != null && in_travel_session.visibility == View.VISIBLE) {
                 symbolManager?.create(SymbolOptions()
                     .withLatLng(LatLng(nextPoint.latitude(),nextPoint.longitude()))
                     .withIconImage("666")
@@ -314,6 +343,8 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         }
     }
 
+
+
     fun displayRoute(){
         routeManager.route?.let { mapboxNavigation?.startNavigation(it) }
 
@@ -333,8 +364,6 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         }
 
     }
-
-
 
     /*
 
