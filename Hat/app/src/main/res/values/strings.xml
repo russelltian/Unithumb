@@ -27,4 +27,8 @@
     <string name="menu_gallery">Gallery</string>
     <string name="menu_slideshow">Slideshow</string>
     <string name="start_navigating">Start Navigating</string>
+    <string name="search_for_bluetooth_device">Search for bluetooth device</string>
+    <string name="disconnect">disconnect</string>
+    <string name="search_available_device">search available device</string>
+    <string name="pop_up_search_box_for_destination_finding">pop up search box for destination finding</string>
 </resources>
