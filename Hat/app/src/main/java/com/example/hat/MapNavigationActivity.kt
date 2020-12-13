@@ -10,7 +10,6 @@ import android.os.Bundle
 import android.os.PersistableBundle
 import android.util.Log
 import android.view.View
-import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.res.ResourcesCompat
@@ -111,7 +110,9 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         mapView?.getMapAsync(this)
         // Bluetooth Set up listener
         findViewById<View>(R.id.searchDeviceButton).setOnClickListener{
-            //initBlueTooth()
+            val intent = Intent(this,DeviceConnectionActivity::class.java).apply{
+            }
+            startActivity(intent)
         }
 //        findViewById<View>(R.id.disconnect).setOnClickListener{
 //            disconnect()
