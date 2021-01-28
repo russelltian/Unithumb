@@ -171,6 +171,13 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
             it.findViewById<FloatingActionButton>(R.id.stopNavigationButton).visibility =
                 View.INVISIBLE
         }
+
+        // Handles Settings
+        findViewById<FloatingActionButton>(R.id.settingsButton).setOnClickListener {
+            val intent = Intent(this,SettingsActivity::class.java).apply{
+            }
+            startActivity(intent)
+        }
         testBearing()
 
     }
