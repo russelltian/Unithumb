@@ -1,15 +1,18 @@
 package com.example.hat
 
+import android.R.attr.*
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.bluetooth.BluetoothDevice
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.Matrix
 import android.location.Location
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.util.Log
 import android.view.View
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.res.ResourcesCompat
@@ -31,10 +34,7 @@ import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions
 import com.mapbox.mapboxsdk.location.LocationComponentOptions
 import com.mapbox.mapboxsdk.location.modes.CameraMode
 import com.mapbox.mapboxsdk.location.modes.RenderMode
-import com.mapbox.mapboxsdk.maps.MapView
-import com.mapbox.mapboxsdk.maps.MapboxMap
-import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
-import com.mapbox.mapboxsdk.maps.Style
+import com.mapbox.mapboxsdk.maps.*
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions
 import com.mapbox.mapboxsdk.plugins.places.autocomplete.PlaceAutocomplete
@@ -49,6 +49,8 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import java.lang.StrictMath.*
 import java.text.DecimalFormat
+
+
 //import com.example.hat.androidbluetoothserial
 
 /*
@@ -74,6 +76,9 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 //    private val locationEngine = ReplayRouteLocationEngine()
     private val routeManager = RouteManager(this)
 
+    // Compass
+    private var imageView: ImageView?= null
+
     // Bluetooth
     // Setup our BluetoothManager
     private var bluetoothManager: BluetoothManager? = null
@@ -96,7 +101,8 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
             if (globalDestination != null){
                 symbolManager?.deleteAll()
                 map?.locationComponent?.lastKnownLocation?.longitude?.let { map?.locationComponent?.lastKnownLocation?.latitude?.let { it1 ->
-                    Point.fromLngLat(it,
+                    Point.fromLngLat(
+                        it,
                         it1
                     )
                 } }?.let {
@@ -110,14 +116,14 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         mapView?.getMapAsync(this)
         // Bluetooth Set up listener
         findViewById<View>(R.id.searchDeviceButton).setOnClickListener{
-            val intent = Intent(this,DeviceConnectionActivity::class.java).apply{
+            val intent = Intent(this, DeviceConnectionActivity::class.java).apply{
             }
             startActivity(intent)
         }
 //        findViewById<View>(R.id.disconnect).setOnClickListener{
 //            disconnect()
 //        }
-
+        imageView = findViewById(R.id.compassPointer)
         // Handles Green button logic
         findViewById<FloatingActionButton>(R.id.startNavigationButton).setOnClickListener{
             // No available route being displayed
@@ -129,6 +135,11 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                 error("Click on StartNavigation Button error: stop navigation button not found")
             }
             stopNavigationButton.visibility = View.VISIBLE
+
+            if (imageView == null){
+                error("Click on StartNavigation Button error: compass image not found")
+            }
+            imageView!!.visibility = View.VISIBLE
             it.findViewById<FloatingActionButton>(R.id.startNavigationButton).visibility = View.INVISIBLE
 //            locationEngine.assign(routeManager.route)
 //            mapboxNavigation?.locationEngine = locationEngine
@@ -168,13 +179,17 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                 error("Click on StopNavigation Button error: start navigation button not found")
             }
             startNavigationButton.visibility = View.VISIBLE
+            if (imageView == null){
+                error("Click on StopNavigation Button error: compass image not found")
+            }
+            imageView!!.visibility = View.INVISIBLE
             it.findViewById<FloatingActionButton>(R.id.stopNavigationButton).visibility =
                 View.INVISIBLE
         }
 
         // Handles Settings
         findViewById<FloatingActionButton>(R.id.settingsButton).setOnClickListener {
-            val intent = Intent(this,SettingsActivity::class.java).apply{
+            val intent = Intent(this, SettingsActivity::class.java).apply{
             }
             startActivity(intent)
         }
@@ -186,15 +201,16 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     override fun onMapReady(mapboxMap: MapboxMap) {
         this.map = mapboxMap
         // By long pressing the map, we get a new route with current position as origin and long press location as destination
-        mapboxMap.addOnMapLongClickListener{click->
+        mapboxMap.addOnMapLongClickListener{ click->
             val origin =
                 map?.locationComponent?.lastKnownLocation?.longitude?.let { map?.locationComponent?.lastKnownLocation?.latitude?.let { it1 ->
-                    Point.fromLngLat(it,
+                    Point.fromLngLat(
+                        it,
                         it1
                     )
                 } }
             val destination: Point =
-                Point.fromLngLat(click.longitude,click.latitude)
+                Point.fromLngLat(click.longitude, click.latitude)
             globalDestination = destination
 
             // Logic: if there isn't a travel ongoing, calculate the route and make the navigation button visible
@@ -212,25 +228,26 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
             // TODO: fix icon name with proper lib
             symbolManager?.create(
                 SymbolOptions()
-                    .withLatLng(LatLng(click.latitude,click.longitude))
+                    .withLatLng(LatLng(click.latitude, click.longitude))
                     .withIconImage("666")
                     .withIconSize(1.0f)
             )
             // the other trigger will not be skipped
             false
         }
-        mapboxMap.setStyle(Style.MAPBOX_STREETS) {style->
+        mapboxMap.setStyle(Style.MAPBOX_STREETS) { style->
             initSearchFab()
             // Map is set up and the style has been loaded.
             enableLocationComponent(style)
-            symbolManager = mapView?.let { SymbolManager(it,mapboxMap, style) }
+            symbolManager = mapView?.let { SymbolManager(it, mapboxMap, style) }
             // set non-data-driven properties, such as:
             symbolManager?.iconAllowOverlap = true
             symbolManager?.iconIgnorePlacement = true
             symbolManager?.iconTranslate = arrayOf(-4f, 5f)
             symbolManager?.iconRotationAlignment = ICON_ROTATION_ALIGNMENT_VIEWPORT
-            ResourcesCompat.getDrawable(resources, R.drawable.map_default_map_marker,null)?.let {
-                style.addImage("666",
+            ResourcesCompat.getDrawable(resources, R.drawable.map_default_map_marker, null)?.let {
+                style.addImage(
+                    "666",
                     it
                 )
             }
@@ -267,23 +284,29 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     @SuppressLint("LogNotTimber", "CheckResult")
     override fun onProgressChange(location: Location?, routeProgress: RouteProgress?) {
         Log.i("route progress", routeProgress?.currentState().toString())
+        if (imageView == null){
+            error("OnprogressChange Listener Error: No compass image view found.")
+        }
         if(routeManager.route != null && routeProgress != null && location != null){
 
-            val origin = location.longitude.let { Point.fromLngLat(it,location.latitude) }
+            val origin = location.longitude.let { Point.fromLngLat(it, location.latitude) }
 
             val nextPoint: Point? = routeManager.getNextPoint(origin)
             val in_travel_session = findViewById<FloatingActionButton>(R.id.stopNavigationButton)
             if (in_travel_session == null){
-                Log.e("OnProgressChange","No stop travel button found")
+                Log.e("OnProgressChange", "No stop travel button found")
             }
             if (nextPoint != null && in_travel_session.visibility == View.VISIBLE) {
-                symbolManager?.create(SymbolOptions()
-                    .withLatLng(LatLng(nextPoint.latitude(),nextPoint.longitude()))
-                    .withIconImage("666")
-                    .withIconSize(0.8f)
+                symbolManager?.create(
+                    SymbolOptions()
+                        .withLatLng(LatLng(nextPoint.latitude(), nextPoint.longitude()))
+                        .withIconImage("666")
+                        .withIconSize(0.8f)
                 )
                 val sendDegree = calcBearing(origin, nextPoint)
                 Log.i("OnProgressChange", sendDegree)
+
+                imageView!!.rotation =  sendDegree.toFloat()
                 // Send message to device connected
                 if (this.deviceInterface != null && bluetoothManager!=null){
                     this.deviceInterface!!.sendMessage(sendDegree)
@@ -296,7 +319,6 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         }
 
     }
-
     override fun onActivityResult(
         requestCode: Int,
         resultCode: Int,
@@ -340,7 +362,8 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                     //todo: suplicated call, maybe swtich to global latter
                     val origin =
                         map?.locationComponent?.lastKnownLocation?.longitude?.let { map?.locationComponent?.lastKnownLocation?.latitude?.let { it1 ->
-                            Point.fromLngLat(it,
+                            Point.fromLngLat(
+                                it,
                                 it1
                             )
                         } }
@@ -359,7 +382,8 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         if(navigationMapRoute == null){
             navigationMapRoute = mapView?.let { it1 ->
                 map?.let { it2 ->
-                    NavigationMapRoute(mapboxNavigation,
+                    NavigationMapRoute(
+                        mapboxNavigation,
                         it1, it2
                     )
                 }
@@ -388,7 +412,10 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
                 .trackingGesturesManagement(true)
                 .build()
 
-            val locationComponentActivationOptions = LocationComponentActivationOptions.builder(this, loadedMapStyle)
+            val locationComponentActivationOptions = LocationComponentActivationOptions.builder(
+                this,
+                loadedMapStyle
+            )
                 .locationComponentOptions(customLocationComponentOptions)
                 .build()
 
@@ -416,14 +443,18 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     // When the user deny the permission for the first time
     override fun onExplanationNeeded(permissionsToExplain: MutableList<String>?) {
         // Present a toast or a dialog explaining why they need to grant permission
-        Toast.makeText(this,"The location request has been declined by the user", Toast.LENGTH_LONG).show()
+        Toast.makeText(
+            this,
+            "The location request has been declined by the user",
+            Toast.LENGTH_LONG
+        ).show()
     }
 
     override fun onPermissionResult(granted: Boolean) {
         if(granted){
             enableLocationComponent(map?.style!!)
         }else{
-            Toast.makeText(this,"User location permission is not granted",Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "User location permission is not granted", Toast.LENGTH_LONG).show()
             finish()
         }
     }
@@ -461,32 +492,36 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
         mapView?.onLowMemory()
     }
 
-    fun calcBearing(origin: Point,nextPoint: Point): String {
+    fun calcBearing(origin: Point, nextPoint: Point): String {
 //        val lat1 = origin.latitude() * Math.PI/180
 //        val lon1 = origin.longitude() * Math.PI/180
 //        val lat2 = nextPoint.latitude() * Math.PI/180
 //        val lon2 = nextPoint.longitude() * Math.PI/180
 //        val dLon = (lon2 - lon1) * Math.PI/180
-        val bearingX = cos(nextPoint.latitude()*Math.PI/180)* sin(
+        val bearingX = cos(nextPoint.latitude() * Math.PI / 180)* sin(
             ((nextPoint.longitude() - origin.longitude())
                     * Math.PI / 180)
         )
-        val bearingY = cos(origin.latitude()*Math.PI/180)*sin(nextPoint.latitude()*Math.PI/180) -
-                sin(origin.latitude()*Math.PI/180)*cos(nextPoint.latitude()*Math.PI/180)*
-                cos((nextPoint.longitude()-origin.longitude())*Math.PI/180)
+        val bearingY = cos(origin.latitude() * Math.PI / 180)*sin(nextPoint.latitude() * Math.PI / 180) -
+                sin(origin.latitude() * Math.PI / 180)*cos(nextPoint.latitude() * Math.PI / 180)*
+                cos((nextPoint.longitude() - origin.longitude()) * Math.PI / 180)
 //        val bearingX = cos(lat2) * sin(dLon)
 //        val bearingY = cos(lat1)*sin(lat2) - sin(lat1)*cos(lat2)*cos(dLon)
-        val bearing = atan2(bearingX,bearingY) * 180 / Math.PI
+        val bearing = atan2(bearingX, bearingY) * 180 / Math.PI
         //bearing = (360 - ((bearing+360)%360))
         val format = DecimalFormat("#.##")
         return format.format(bearing)
     }
 
     fun testBearing(){
-        val a = calcBearing(Point.fromLngLat( -94.581213,39.099912),
-            Point.fromLngLat( -90.200203,38.627089))
-        val b = calcBearing(Point.fromLngLat( -79.3832,43.6532),
-            Point.fromLngLat( -79.383,43.6531))
+        val a = calcBearing(
+            Point.fromLngLat(-94.581213, 39.099912),
+            Point.fromLngLat(-90.200203, 38.627089)
+        )
+        val b = calcBearing(
+            Point.fromLngLat(-79.3832, 43.6532),
+            Point.fromLngLat(-79.383, 43.6531)
+        )
 
         print(a)
     }
@@ -535,24 +570,27 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
 //            { error: Throwable -> onError(error) }
 //        )
 
-        this.deviceInterface!!.setMessageReceivedListener( object:SimpleBluetoothDeviceInterface.OnMessageReceivedListener  {
-            override fun onMessageReceived(message: String){
+        this.deviceInterface!!.setMessageReceivedListener(object :
+            SimpleBluetoothDeviceInterface.OnMessageReceivedListener {
+            override fun onMessageReceived(message: String) {
 //                val text_box = findViewById<TextView>(R.id.debug_data_received)
 //                text_box.setText(message).toString()
             }
         })
 
-        this.deviceInterface!!.setMessageSentListener( object:SimpleBluetoothDeviceInterface.OnMessageSentListener  {
+        this.deviceInterface!!.setMessageSentListener(object :
+            SimpleBluetoothDeviceInterface.OnMessageSentListener {
             @SuppressLint("LogNotTimber")
             override fun onMessageSent(message: String) {
                 Log.d("bluetooth", "Sent a message! Message was: $message")
             }
         })
 
-        this.deviceInterface!!.setErrorListener( object:SimpleBluetoothDeviceInterface.OnErrorListener  {
+        this.deviceInterface!!.setErrorListener(object :
+            SimpleBluetoothDeviceInterface.OnErrorListener {
             @SuppressLint("LogNotTimber")
             override fun onError(error: Throwable) {
-                Log.e("bluetooth",error.toString())
+                Log.e("bluetooth", error.toString())
                 bluetoothManager?.close()
                 bluetoothManager = null
                 deviceInterface = null
@@ -572,7 +610,7 @@ class MapNavigationActivity: AppCompatActivity(),OnMapReadyCallback,PermissionsL
     @SuppressLint("LogNotTimber")
     private fun onError(error: Throwable) {
         // Handle the error
-        Log.e("bluetooth",error.toString())
+        Log.e("bluetooth", error.toString())
         bluetoothManager?.close()
         bluetoothManager = null
         deviceInterface = null
